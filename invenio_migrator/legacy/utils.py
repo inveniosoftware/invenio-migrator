@@ -22,23 +22,45 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-
-"""Minimal Flask application example for development.
-
-Run example development server:
-
-.. code-block:: console
-
-   $ cd examples
-   $ flask -a app.py --debug run
-"""
+""""Helper methods."""
 
 from __future__ import absolute_import, print_function
 
-from flask import Flask
+from itertools import islice
 
-from invenio_migrator import InvenioMigrator
+from pkg_resources import iter_entry_points
 
-# Create Flask application
-app = Flask(__name__)
-InvenioMigrator(app)
+
+def grouper(iterable, n):
+    """Create chunks of size `n` from the iterable.
+
+    Example:
+
+    >>> grouper('ABCDEFG', 3)
+    ['ABC', 'DEF', 'G']
+    """
+    it = iter(iterable)
+    while True:
+        chunk = tuple(islice(it, n))
+        if not chunk:
+            return
+        yield chunk
+
+
+def collect_things_entry_points():
+    """Collect entry points."""
+    things = dict()
+    for entry_point in iter_entry_points(group='invenio_migrator.things'):
+        things[entry_point.name] = entry_point.load()
+    return things
+
+
+def init_app_context():
+    """Initialize app context for Invenio 2.x."""
+    try:
+        from invenio.base.factory import create_app
+        app = create_app()
+        app.test_request_context('/').push()
+        app.preprocess_request()
+    except ImportError:
+        pass

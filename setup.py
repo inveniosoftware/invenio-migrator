@@ -58,7 +58,9 @@ setup_requires = [
 ]
 
 install_requires = [
-    'Flask>=0.10',
+    'Click>=6.3',
+    'six>=1.9.0',
+    'Werkzeug>=0.11.4',
 ]
 
 packages = find_packages()
@@ -85,9 +87,18 @@ setup(
     include_package_data=True,
     platforms='any',
     entry_points={
+        'console_scripts': [
+            'inveniomigrator = invenio_migrator.legacy.cli:cli',
+        ],
         'invenio_base.apps': [
             'invenio_migrator = invenio_migrator:InvenioMigrator',
         ],
+        'invenio_celery.tasks': [
+            'invenio_migrator = invenio_migrator.tasks',
+        ],
+        'invenio_migrator.things': [
+            'records = invenio_migrator.legacy.records',
+        ]
     },
     extras_require=extras_require,
     install_requires=install_requires,
