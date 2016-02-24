@@ -46,6 +46,8 @@ extras_require = {
     'docs': [
         'Sphinx>=1.3',
     ],
+    'loader': [],
+    'dumper': [],
     'tests': tests_require,
 }
 
@@ -58,7 +60,9 @@ setup_requires = [
 ]
 
 install_requires = [
-    'Flask>=0.10',
+    'Click>=6.3',
+    'Werkzeug>=0.11.4',
+    'six>=1.9.0',
 ]
 
 packages = find_packages()
@@ -85,9 +89,16 @@ setup(
     include_package_data=True,
     platforms='any',
     entry_points={
+        'console_scripts': [
+            'invenio-migrator = invenio_migrator.cli:cli',
+        ],
         'invenio_base.apps': [
             'invenio_migrator = invenio_migrator:InvenioMigrator',
         ],
+        'invenio_migrator.things':[
+            'files = invenio_migrator.bibdocfile',
+            'records = invenio_migrator.records',
+        ]
     },
     extras_require=extras_require,
     install_requires=install_requires,
