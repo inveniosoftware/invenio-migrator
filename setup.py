@@ -46,6 +46,9 @@ extras_require = {
     'docs': [
         'Sphinx>=1.3',
     ],
+    'loader': [
+        'arrow>=0.7.0',
+    ],
     'tests': tests_require,
 }
 
