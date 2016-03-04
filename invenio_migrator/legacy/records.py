@@ -110,7 +110,7 @@ def dump(recid, from_date, with_json=True, latest_only=False, **kwargs):
         revision_iter = reversed(get_record_revisions(recid))
 
     # Dump revisions
-    record_dump = dict(marcxml=[], json=[], files=[])
+    record_dump = dict(record=[], files=[])
 
     for revision in revision_iter:
         revision_date = datetime.datetime.strptime(
@@ -118,12 +118,12 @@ def dump(recid, from_date, with_json=True, latest_only=False, **kwargs):
         if revision_date < date:
             continue
 
-        # Dump MARCXML
-        marcxml = get_marcxml_of_revision_id(*revision)
-        record_dump['marcxml'].append(marcxml)
-
-        if with_json:
-            record_dump['json'].append(dump_record_json(marcxml))
+        record_dump['record'].append(dict(
+            id=recid,
+            modification_date=str(revision_date),
+            marcxml=get_marcxml_of_revision_id(*revision),
+            json=dump_record_json(marcxml) if with_json else None,
+        ))
 
     record_dump['files'] = dump_bibdoc(recid, from_date)
 
