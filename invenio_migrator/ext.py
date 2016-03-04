@@ -26,6 +26,8 @@
 
 from __future__ import absolute_import, print_function
 
+from werkzeug.utils import import_string
+
 
 class InvenioMigrator(object):
     """Invenio-Migrator extension."""
@@ -34,7 +36,36 @@ class InvenioMigrator(object):
         """Extension initialization."""
         if app:
             self.init_app(app)
+            self.records_post_task = None
+            self._records_pid_fetchers = None
 
     def init_app(self, app):
         """Flask application initialization."""
+        self.init_config(app.config)
         app.extensions['invenio-migrator'] = self
+
+    def init_config(self, config):
+        """Initialize config."""
+        config.setdefault('MIGRATOR_RECORDS_POST_TASK', [])
+        config.setdefault('MIGRATOR_RECORDS_PID_FETCHERS', [])
+        config.setdefault('MIGRATOR_RECORDS_MIGRATION_PID', 'control_number')
+
+    def records_post_task_factory(self, record_uuid):
+        """Factory for sending Celery task after records creation."""
+        if self.records_post_task is None:
+            task_imp = current_app.config['MIGRATOR_RECORDS_POST_TASK']
+            if task_imp:
+                self.records_post_task = import_string(task_imp)
+            else:
+                self.records_post_task = False
+
+        if self.records_post_task:
+            self.records_post_task.delay(bucket_id, key)
+
+    @property
+    def records_pid_fetchers(self):
+        if self._records_pid_fetchers is None:
+            fetchers = current_app.config['MIGRATOR_RECORDS_PID_FETCHERS']
+            self._records_pid_fetchers = []
+            for fetcher in fetchers:
+                self._records_pid_fetchers.append(import_string(fetcher))
