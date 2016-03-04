@@ -28,6 +28,8 @@ from __future__ import absolute_import, print_function
 
 import datetime
 
+from .utils import datetime_toutc
+
 
 def _get_recids_invenio12(from_date):
     """Get BibDocs for Invenio 1."""
@@ -94,7 +96,7 @@ def dump_bibdoc(recid, from_date, **kwargs):
                     copyright=(
                         f.get_copyright() if hasattr(f, 'get_copyright')
                         else None),
-                    creation_date=f.cd.strftime("%Y-%m-%d %H:%M:%S"),
+                    creation_date=datetime_toutc(f.cd).isoformat(),
                     description=f.get_description(),
                     encoding=f.encoding,
                     etag=f.etag,
@@ -106,9 +108,9 @@ def dump_bibdoc(recid, from_date, **kwargs):
                     license=(
                         f.get_license()if hasattr(f, 'get_license') else None),
                     magic=f.get_magic(),
-                    modification_date=f.md.strftime("%Y-%m-%d %H:%M:%S"),
+                    modification_date=datetime_toutc(f.md).isoformat(),
                     name=f.get_name(),
-                    mine=f.mime,
+                    mime=f.mime,
                     path=f.get_path(),
                     recid=f.get_recid(),
                     recids_doctype=f.recids_doctypes,

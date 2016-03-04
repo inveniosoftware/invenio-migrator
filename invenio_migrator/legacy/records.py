@@ -28,7 +28,8 @@ from __future__ import absolute_import, print_function
 
 import datetime
 
-from .bibdocfile import get_modified_bibdoc_recids, dump_bibdoc
+from .bibdocfile import dump_bibdoc, get_modified_bibdoc_recids
+from .utils import datetime_toutc
 
 
 def _get_modified_recids_invenio12(from_date):
@@ -110,7 +111,7 @@ def dump(recid, from_date, with_json=True, latest_only=False, **kwargs):
         revision_iter = reversed(get_record_revisions(recid))
 
     # Dump revisions
-    record_dump = dict(record=[], files=[])
+    record_dump = dict(record=[], files=[], recid=recid)
 
     for revision in revision_iter:
         revision_date = datetime.datetime.strptime(
@@ -118,10 +119,11 @@ def dump(recid, from_date, with_json=True, latest_only=False, **kwargs):
         if revision_date < date:
             continue
 
+        marcxml = get_marcxml_of_revision_id(*revision)
+
         record_dump['record'].append(dict(
-            id=recid,
-            modification_date=str(revision_date),
-            marcxml=get_marcxml_of_revision_id(*revision),
+            modification_datetime=datetime_toutc(revision_date).isoformat(),
+            marcxml=marcxml,
             json=dump_record_json(marcxml) if with_json else None,
         ))
 

@@ -46,6 +46,15 @@ extras_require = {
     'docs': [
         'Sphinx>=1.3',
     ],
+    'loader': [
+        'arrow>=0.7.0',
+        'dojson>=1.0.0',
+        'Flask-CeleryExt>=0.2.0',
+        'invenio-db[versioning]>=1.0.0a9',
+        'invenio-files-rest>=1.0.0.dev20150000',
+        'invenio-pidstore>=1.0.0a6',
+        'invenio-records>=1.0.0a9',
+    ],
     'tests': tests_require,
 }
 
@@ -59,6 +68,8 @@ setup_requires = [
 
 install_requires = [
     'Click>=6.3',
+    'Flask-CLI>=0.2.1',
+    'Flask>=0.10',
     'six>=1.9.0',
     'Werkzeug>=0.11.4',
 ]
@@ -91,10 +102,10 @@ setup(
             'inveniomigrator = invenio_migrator.legacy.cli:cli',
         ],
         'invenio_base.apps': [
-            'invenio_migrator = invenio_migrator:InvenioMigrator',
+            'invenio_migrator = invenio_migrator.ext:InvenioMigrator',
         ],
         'invenio_celery.tasks': [
-            'invenio_migrator = invenio_migrator.tasks',
+            'invenio_migrator = invenio_migrator.tasks.records',
         ],
         'invenio_migrator.things': [
             'records = invenio_migrator.legacy.records',

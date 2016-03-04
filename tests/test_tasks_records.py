@@ -22,37 +22,23 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
+"""Celery records tests."""
 
-root = true
+from __future__ import absolute_import, print_function
 
-[*]
-indent_style = space
-end_of_line = lf
-insert_final_newline = true
-trim_trailing_whitespace = true
-charset = utf-8
+from invenio_files_rest.models import ObjectVersion
+from invenio_records.models import RecordMetadata
 
-# Python files
-[*.py]
-indent_size = 4
-# isort plugin configuration
-known_first_party = invenio_migrator
-known_third_party = invenio_pidstore, invenio_records, invenio_db, invenio_files_rest, flask_celeryext, dojson
-multi_line_output = 2
-default_section = THIRDPARTY
+from invenio_migrator.tasks.records import import_record
 
-# RST files (used by sphinx)
-[*.rst]
-indent_size = 4
 
-# CSS, HTML, JS, JSON, YML
-[*.{css,html,js,json,yml}]
-indent_size = 2
-
-# Matches the exact files either package.json or .travis.yml
-[{package.json,.travis.yml}]
-indent_size = 2
-
-# Dockerfile
-[Dockerfile]
-indent_size = 4
+def test_import_record(app, db, dummy_location, record_dump, records_json,
+                       resolver):
+    """Test import record celery task."""
+    assert RecordMetadata.query.count() == 0
+    import_record(records_json[0], source_type='json')
+    assert RecordMetadata.query.count() == 1
+    pid, record = resolver.resolve('11782')
+    assert len(record['files']) == 1
+    assert ObjectVersion.get(
+        record['files'][0]['bucket'], record['files'][0]['filename'])

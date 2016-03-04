@@ -1,0 +1,106 @@
+[
+  {
+    "files": [
+      {
+        "comment": "0",
+        "status": "",
+        "version": 1,
+        "encoding": null,
+        "creation_date": "2014-09-19 14:07:06",
+        "bibdocid": 8651,
+        "mime": "application/pdf",
+        "full_name": "CERN_openlab_Parin_Porecha.pdf",
+        "superformat": ".pdf",
+        "recids_doctype": [
+          [
+            11782,
+            "Main",
+            "CERN_openlab_Parin_Porecha.pdf"
+          ]
+        ],
+        "path": "/opt/zenodo/var/data/files/g8/8651/content.pdf;1",
+        "size": 780189,
+        "license": null,
+        "magic": [
+          "PDF document, version 1.4",
+          "application/pdf",
+          "binary"
+        ],
+        "modification_date": "2014-09-19 14:07:06",
+        "copyright": null,
+        "url": "https://zenodo.org/record/11782/files/CERN_openlab_Parin_Porecha.pdf",
+        "checksum": "ca8d299bad89084e50d8a4a39feadde2",
+        "description": null,
+        "format": ".pdf",
+        "name": "CERN_openlab_Parin_Porecha",
+        "subformat": "",
+        "etag": "\"8651.pdf1\"",
+        "recid": 11782,
+        "flags": [],
+        "hidden": false,
+        "type": "Main",
+        "full_path": "/opt/zenodo/var/data/files/g8/8651/content.pdf;1"
+      }
+    ],
+    "record": [
+      {
+        "marcxml": "<record>\n  <controlfield tag=\"001\">11782</controlfield>\n  <controlfield tag=\"005\">20141013102747.0</controlfield>\n  <datafield tag=\"024\" ind1=\"7\" ind2=\" \">\n    <subfield code=\"2\">DOI</subfield>\n    <subfield code=\"a\">10.5281/zenodo.11782</subfield>\n  </datafield>\n  <datafield tag=\"100\" ind1=\" \" ind2=\" \">\n    <subfield code=\"a\">Porecha, Parin </subfield>\n    <subfield code=\"u\">CERN openlab Summer Student</subfield>\n  </datafield>\n  <datafield tag=\"245\" ind1=\" \" ind2=\" \">\n    <subfield code=\"a\">Deploying ImageFactory</subfield>\n  </datafield>\n  <datafield tag=\"260\" ind1=\" \" ind2=\" \">\n    <subfield code=\"c\">2014-09-01</subfield>\n  </datafield>\n  <datafield tag=\"347\" ind1=\" \" ind2=\" \">\n    <subfield code=\"p\">50</subfield>\n  </datafield>\n  <datafield tag=\"520\" ind1=\" \" ind2=\" \">\n    <subfield code=\"a\">&lt;p>&lt;strong>Abstract&lt;/strong>&lt;/p>\n\n&lt;p>The common practice between OpenStack users is to manually install a base operating system,&amp;nbsp;boot it up, install packages, add necessary configuration and then snapshot it for later use. Much&amp;nbsp;of this can be automated using kickstart files, Puppet, etc. but it&amp;rsquo;s still a tedious process.&amp;nbsp;That&amp;rsquo;s where Image Factory comes&amp;nbsp;into play. It allows you to describe your virtual image (the&amp;nbsp;operating system, architecture, installed packages, etc.) and have it uploaded to&amp;nbsp;various&amp;nbsp;cloud&amp;nbsp;providers (such as EC2, oVirt or OpenStack). This could be&amp;nbsp;useful to the OpenStack users&amp;nbsp;even without all the cross-cloud features.&lt;/p></subfield>\n  </datafield>\n  <datafield tag=\"540\" ind1=\" \" ind2=\" \">\n    <subfield code=\"a\">Creative Commons Attribution Share-Alike</subfield>\n    <subfield code=\"u\">http://www.opendefinition.org/licenses/cc-by-sa</subfield>\n  </datafield>\n  <datafield tag=\"542\" ind1=\" \" ind2=\" \">\n    <subfield code=\"l\">open</subfield>\n  </datafield>\n  <datafield tag=\"650\" ind1=\"1\" ind2=\"7\">\n    <subfield code=\"2\">opendefinition.org</subfield>\n    <subfield code=\"a\">cc-by-sa</subfield>\n  </datafield>\n  <datafield tag=\"653\" ind1=\"1\" ind2=\" \">\n    <subfield code=\"a\">CERN openlab Summer Student</subfield>\n  </datafield>\n  <datafield tag=\"700\" ind1=\" \" ind2=\" \">\n    <subfield code=\"a\">Fernandez Alvarez, Luis</subfield>\n    <subfield code=\"u\">Summer Student Supervisor</subfield>\n  </datafield>\n  <datafield tag=\"856\" ind1=\"0\" ind2=\" \">\n    <subfield code=\"b\">12028</subfield>\n    <subfield code=\"f\">m.touranakou@gmail.com</subfield>\n    <subfield code=\"w\">5887</subfield>\n    <subfield code=\"y\">Mary Touranakou</subfield>\n  </datafield>\n  <datafield tag=\"856\" ind1=\"4\" ind2=\" \">\n    <subfield code=\"s\">19914</subfield>\n    <subfield code=\"u\">https://zenodo.org/record/11782/files/CERN_openlab_Parin_Porecha.png?subformat=icon-90</subfield>\n    <subfield code=\"x\">icon-90</subfield>\n  </datafield>\n  <datafield tag=\"856\" ind1=\"4\" ind2=\" \">\n    <subfield code=\"s\">780189</subfield>\n    <subfield code=\"u\">https://zenodo.org/record/11782/files/CERN_openlab_Parin_Porecha.pdf</subfield>\n    <subfield code=\"z\">0</subfield>\n  </datafield>\n  <datafield tag=\"909\" ind1=\"C\" ind2=\"O\">\n    <subfield code=\"o\">oai:zenodo.org:11782</subfield>\n    <subfield code=\"p\">openaire</subfield>\n    <subfield code=\"p\">user-cernopenlab</subfield>\n    <subfield code=\"p\">user-zenodo</subfield>\n  </datafield>\n  <datafield tag=\"980\" ind1=\" \" ind2=\" \">\n    <subfield code=\"a\">user-cernopenlab</subfield>\n  </datafield>\n  <datafield tag=\"980\" ind1=\" \" ind2=\" \">\n    <subfield code=\"a\">publication</subfield>\n    <subfield code=\"b\">report</subfield>\n  </datafield>\n  <datafield tag=\"980\" ind1=\" \" ind2=\" \">\n    <subfield code=\"a\">user-zenodo</subfield>\n  </datafield>\n</record>",
+        "json": {
+          "description": "<p><strong>Abstract</strong></p>\n\n<p>The common practice between OpenStack users is to manually install a base operating system,&nbsp;boot it up, install packages, add necessary configuration and then snapshot it for later use. Much&nbsp;of this can be automated using kickstart files, Puppet, etc. but it&rsquo;s still a tedious process.&nbsp;That&rsquo;s where Image Factory comes&nbsp;into play. It allows you to describe your virtual image (the&nbsp;operating system, architecture, installed packages, etc.) and have it uploaded to&nbsp;various&nbsp;cloud&nbsp;providers (such as EC2, oVirt or OpenStack). This could be&nbsp;useful to the OpenStack users&nbsp;even without all the cross-cloud features.</p>",
+          "creation_date": "2014-09-19T14:06:50",
+          "keywords": [
+            "CERN openlab Summer Student"
+          ],
+          "doi": "10.5281/zenodo.11782",
+          "authors": [
+            {
+              "name": "Porecha, Parin ",
+              "familyname": "Porecha",
+              "givennames": "Parin",
+              "affiliation": "CERN openlab Summer Student",
+              "gnd": "",
+              "orcid": ""
+            },
+            {
+              "name": "Fernandez Alvarez, Luis",
+              "familyname": "Fernandez Alvarez",
+              "givennames": "Luis",
+              "affiliation": "Summer Student Supervisor",
+              "gnd": "",
+              "orcid": ""
+            }
+          ],
+          "publication_date": "2014-09-01",
+          "license": {
+            "url": "http://www.opendefinition.org/licenses/cc-by-sa",
+            "source": "opendefinition.org",
+            "identifier": "cc-by-sa",
+            "license": "Creative Commons Attribution Share-Alike"
+          },
+          "modification_date": "2014-10-13T10:27:47",
+          "title": "Deploying ImageFactory",
+          "communities": [
+            "cernopenlab",
+            "zenodo"
+          ],
+          "upload_type": {
+            "subtype": "report",
+            "type": "publication"
+          },
+          "oai": {
+            "indicator": [
+              "openaire",
+              "user-cernopenlab",
+              "user-zenodo"
+            ],
+            "oai": "oai:zenodo.org:11782"
+          },
+          "recid": 11782,
+          "access_right": "open"
+        },
+        "modification_datetime": "2014-10-13T08:27:47+00:00"
+      }
+    ],
+    "recid": 11782
+  }
+]

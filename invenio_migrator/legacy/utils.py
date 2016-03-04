@@ -28,6 +28,7 @@ from __future__ import absolute_import, print_function
 
 from itertools import islice
 
+from dateutil.tz import tzlocal, tzutc
 from pkg_resources import iter_entry_points
 
 
@@ -64,3 +65,8 @@ def init_app_context():
         app.preprocess_request()
     except ImportError:
         pass
+
+
+def datetime_toutc(dt):
+    """Convert local datetime to UTC."""
+    return dt.replace(tzinfo=tzlocal()).astimezone(tzutc())

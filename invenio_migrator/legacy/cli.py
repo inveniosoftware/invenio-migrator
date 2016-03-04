@@ -54,18 +54,22 @@ def dump(thing, query, from_date, file_prefix, chunk_size, argument):
     kwargs = dict(arg.split('=') for arg in argument)
 
     try:
-        thing = collect_things_entry_points()[thing]
+        thing_func = collect_things_entry_points()[thing]
     except KeyError:
         click.Abort(
             '{0} is not in the list of available things to migrate: '
             '{1}'.format(thing, collect_things_entry_points()))
 
-    with click.progressbar(thing.get(query, from_date, **kwargs)) as ids:
+    click.echo("Querying {0}...".format(thing))
+    items = thing_func.get(query, from_date, **kwargs)
+
+    click.echo("Dumping {0}...".format(thing))
+    with click.progressbar(items) as ids:
         for i, chunk_ids in enumerate(grouper(ids, chunk_size)):
             with open('{0}_{1}.json'.format(file_prefix, i), 'w') as fp:
                 fp.write("[\n")
                 for _id in chunk_ids:
-                    json.dump(thing.dump(_id, from_date, **kwargs), fp)
+                    json.dump(thing_func.dump(_id, from_date, **kwargs), fp)
                     fp.write(",")
                 # Strip trailing comma.
                 fp.seek(fp.tell()-1)
