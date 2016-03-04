@@ -26,6 +26,9 @@
 
 from __future__ import absolute_import, print_function
 
+from flask import current_app
+from werkzeug.utils import import_string
+
 
 class InvenioMigrator(object):
     """Invenio-Migrator extension."""
@@ -34,7 +37,25 @@ class InvenioMigrator(object):
         """Extension initialization."""
         if app:
             self.init_app(app)
+            self.files_post_task = None
 
     def init_app(self, app):
         """Flask application initialization."""
+        self.init_config(app.config)
         app.extensions['invenio-migrator'] = self
+
+    def init_config(self, config):
+        """Initialize config."""
+        config.setdefault('MIGRATOR_FILES_POST_TASK', None)
+
+    def files_post_task_factory(self, bucket_id, key):
+        """Factory for sending Celery task after files creation."""
+        if self.files_post_task is None:
+            task_imp = current_app.config['MIGRATOR_FILES_POST_TASK']
+            if task_imp:
+                self.files_post_task = import_string(task_imp)
+            else:
+                self.files_post_task = False
+
+        if self.files_post_task:
+            self.files_post_task.delay(bucket_id, key)
