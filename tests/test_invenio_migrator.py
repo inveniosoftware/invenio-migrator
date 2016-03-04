@@ -27,6 +27,7 @@
 from __future__ import absolute_import, print_function
 
 from flask import Flask
+from flask_cli import FlaskCLI
 
 from invenio_migrator.ext import InvenioMigrator
 
@@ -40,10 +41,12 @@ def test_version():
 def test_init():
     """Test extension initialization."""
     app = Flask('testapp')
+    FlaskCLI(app)
     ext = InvenioMigrator(app)
     assert 'invenio-migrator' in app.extensions
 
     app = Flask('testapp')
+    FlaskCLI(app)
     ext = InvenioMigrator()
     assert 'invenio-migrator' not in app.extensions
     ext.init_app(app)

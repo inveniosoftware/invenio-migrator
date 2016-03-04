@@ -110,7 +110,7 @@ def dump(recid, from_date, with_json=True, latest_only=False, **kwargs):
         revision_iter = reversed(get_record_revisions(recid))
 
     # Dump revisions
-    record_dump = dict(marcxml=[], json=[], files=[])
+    record_dump = dict(marcxml=[], json=[], files=[], recid=recid)
 
     for revision in revision_iter:
         revision_date = datetime.datetime.strptime(

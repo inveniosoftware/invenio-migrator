@@ -46,6 +46,9 @@ extras_require = {
     'docs': [
         'Sphinx>=1.3',
     ],
+    'loader': [
+        'arrow>=0.7.0',
+    ],
     'tests': tests_require,
 }
 
@@ -91,7 +94,7 @@ setup(
             'inveniomigrator = invenio_migrator.legacy.cli:cli',
         ],
         'invenio_base.apps': [
-            'invenio_migrator = invenio_migrator:InvenioMigrator',
+            'invenio_migrator = invenio_migrator.ext:InvenioMigrator',
         ],
         'invenio_celery.tasks': [
             'invenio_migrator = invenio_migrator.tasks',

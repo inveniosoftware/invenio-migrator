@@ -22,10 +22,13 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Celery tasks for migration."""
+"""Proxies for Invenio-Migrator."""
 
 from __future__ import absolute_import, print_function
 
-from .records import import_record
+from flask import current_app
+from werkzeug.local import LocalProxy
 
-__all__ = ('import_record', )
+current_migrator = LocalProxy(
+    lambda: current_app.extensions['invenio-migrator'])
+"""Proxy to current migration context."""
