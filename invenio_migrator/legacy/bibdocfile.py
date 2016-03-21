@@ -109,7 +109,6 @@ def dump_bibdoc(recid, from_date, **kwargs):
                     hidden=f.hidden,
                     license=(
                         f.get_license()if hasattr(f, 'get_license') else None),
-                    magic=f.get_magic(),
                     modification_date=datetime_toutc(f.md).isoformat(),
                     name=f.get_name(),
                     mime=f.mime,
