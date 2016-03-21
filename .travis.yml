@@ -34,8 +34,8 @@ cache:
   - pip
 
 env:
-#  - REQUIREMENTS=lowest
-#  - REQUIREMENTS=release
+  - REQUIREMENTS=lowest
+  - REQUIREMENTS=release
   - REQUIREMENTS=devel
 
 python:
@@ -60,3 +60,14 @@ script:
 
 after_success:
   - coveralls
+
+deploy:
+  provider: pypi
+  user: lnielsen
+  password:
+    secure: "F9LXazIs6Dc3DE847YyJ0w4e8ahzvKJbz2BJ8H8T/kxNq4+DNM5GVxlZEvKx46VKr8SYEXWcdLUkeCegFk+mqpM75hiJAAzHCMd/AL9Njs51dxqMUK5CjXFBCASZVZPMcQsN/xemArX6s78wCm+mjkj9XqABGdksppz0QOGDouOV/+ihdfOtl2MTXnlfEOP9hr4wh3gStbaC7yU8FZSv98dxS0ep6pW0GAFk0I1S4LTP4NCDQ0cy7pyZivXwiGPIcN+TO42f4F25TqhtskRoZ3hwyaTzYjNYtUukvM+xN3BBcJ5q6hW0X6PGj9vjj3XamGtZBXb8MMDbzSNtLhAiDCMMTMUrIiXBmZFiimdevNlR9JF91d7zJXwPdWueHtlufXXYQ6ZyLCHnZj27e9MILQAs49WsHTQyb7TxZrtYetILRdhxSeUG7gwvn5gkGvI82Nn4OObUAa0nEMhmsI2ZoSKtvBoLXNn5f10tpu+XLgHNPb19gPZujnrqWIStOOSS17HD3pZwtPOclJIYVECUzrB8ERQ8AczeHZ7WC1U+IqqLxvNgxj/I+QNvWFqo0zkllbRVycJMQ2Nu8v2McFBUiBHoqijVZoiPoEBP1pwXR/8XNbLBBsS+346ID5+SOv1cS5a7huCpV2MJz+TNtuztv/7yhmCddNwd+euEZyCQz6c="
+  distributions: "sdist bdist_wheel"
+  on:
+    tags: true
+    python: "2.7"
+    condition: $REQUIREMENTS = release

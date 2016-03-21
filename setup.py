@@ -51,7 +51,7 @@ extras_require = {
         'dojson>=1.0.0',
         'Flask-CeleryExt>=0.2.0',
         'invenio-db[versioning]>=1.0.0a9',
-        'invenio-files-rest>=1.0.0.dev20150000',
+        'invenio-files-rest>=1.0.0a1',
         'invenio-pidstore>=1.0.0a6',
         'invenio-records>=1.0.0a9',
     ],

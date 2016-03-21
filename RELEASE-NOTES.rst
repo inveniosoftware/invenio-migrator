@@ -2,7 +2,7 @@
  Invenio-Migrator v1.0.0a1
 ===========================
 
-Invenio-Migrator v1.0.0a1 was released on TBD, 2016.
+Invenio-Migrator v1.0.0a1 was released on March 21, 2016.
 
 About
 -----
