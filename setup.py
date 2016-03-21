@@ -109,6 +109,7 @@ setup(
         ],
         'invenio_migrator.things': [
             'records = invenio_migrator.legacy.records',
+            'files = invenio_migrator.legacy.bibdocfile',
         ]
     },
     extras_require=extras_require,

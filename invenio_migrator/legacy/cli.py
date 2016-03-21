@@ -63,14 +63,43 @@ def dump(thing, query, from_date, file_prefix, chunk_size, argument):
     click.echo("Querying {0}...".format(thing))
     items = thing_func.get(query, from_date, **kwargs)
 
+    count = 0
     click.echo("Dumping {0}...".format(thing))
-    with click.progressbar(items) as ids:
-        for i, chunk_ids in enumerate(grouper(ids, chunk_size)):
+    with click.progressbar(length=len(items)) as bar:
+        for i, chunk_ids in enumerate(grouper(items, chunk_size)):
             with open('{0}_{1}.json'.format(file_prefix, i), 'w') as fp:
                 fp.write("[\n")
                 for _id in chunk_ids:
                     json.dump(thing_func.dump(_id, from_date, **kwargs), fp)
                     fp.write(",")
+                    count += 1
+                    bar.update(count)
+
                 # Strip trailing comma.
                 fp.seek(fp.tell()-1)
                 fp.write("\n]")
+
+
+@cli.command()
+@click.argument('thing')
+def check(thing):
+    """Check data in Invenio legacy."""
+    init_app_context()
+
+    try:
+        thing_func = collect_things_entry_points()[thing]
+    except KeyError:
+        click.Abort(
+            '{0} is not in the list of available things to migrate: '
+            '{1}'.format(thing, collect_things_entry_points()))
+
+    click.echo("Querying {0}...".format(thing))
+    count, items = thing_func.get_check()
+
+    i = 0
+    click.echo("Checking {0}...".format(thing))
+    with click.progressbar(length=count) as bar:
+        for _id in items:
+            thing_func.check(_id)
+            i += 1
+            bar.update(i)

@@ -28,6 +28,8 @@ from __future__ import absolute_import, print_function
 
 import datetime
 
+import click
+
 from .utils import datetime_toutc
 
 
@@ -124,3 +126,26 @@ def dump_bibdoc(recid, from_date, **kwargs):
                 ))
 
     return bibdocfile_dump
+
+
+def get_check():
+    """Get bibdocs to check."""
+    try:
+        from invenio.dbquery import run_sql
+    except ImportError:
+        from invenio.legacy.dbquery import run_sql
+
+    return (
+        run_sql('select count(id) from bibdoc')[0][0],
+        [id[0] for id in run_sql('select id from bibdoc')],
+    )
+
+
+def check(id_):
+    """Check bibdocs."""
+    BibRecDocs, BibDoc = _import_bibdoc()
+
+    try:
+        BibDoc(id_).list_all_files()
+    except Exception:
+        click.secho("BibDoc {0} failed check.".format(id_), fg='red')
