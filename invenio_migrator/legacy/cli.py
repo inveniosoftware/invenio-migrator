@@ -70,8 +70,13 @@ def dump(thing, query, from_date, file_prefix, chunk_size, argument):
             with open('{0}_{1}.json'.format(file_prefix, i), 'w') as fp:
                 fp.write("[\n")
                 for _id in chunk_ids:
-                    json.dump(thing_func.dump(_id, from_date, **kwargs), fp)
-                    fp.write(",")
+                    try:
+                        json.dump(
+                            thing_func.dump(_id, from_date, **kwargs), fp)
+                        fp.write(",")
+                    except Exception:
+                        click.secho(
+                            "Failed dump {0} {1}".format(thing, _id), fg='red')
                     count += 1
                     bar.update(count)
 
