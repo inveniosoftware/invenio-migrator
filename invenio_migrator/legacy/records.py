@@ -89,7 +89,7 @@ def get(query, from_date, **kwargs):
     if query:
         return recids.intersection(set(search_pattern(p=query)))
 
-    return recids
+    return len(recids), recids
 
 
 def dump(recid, from_date, with_json=True, latest_only=False, **kwargs):
@@ -116,7 +116,7 @@ def dump(recid, from_date, with_json=True, latest_only=False, **kwargs):
     for revision in revision_iter:
         revision_date = datetime.datetime.strptime(
             revision[1], '%Y%m%d%H%M%S')
-        if revision_date < date:
+        if date is not None and revision_date < date:
             continue
 
         marcxml = get_marcxml_of_revision_id(*revision)
