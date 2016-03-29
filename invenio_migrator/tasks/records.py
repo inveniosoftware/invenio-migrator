@@ -32,7 +32,7 @@ from invenio_db import db
 from ..proxies import current_migrator
 
 
-@shared_task(ignore_result=True)
+@shared_task()
 def import_record(data, source_type=None, latest_only=False):
     """Migrate a record from a migration dump.
 
@@ -51,10 +51,9 @@ def import_record(data, source_type=None, latest_only=False):
     )
     try:
         record = current_migrator.records_dumploader_cls.create(recorddump)
+        db.session.commit()
     except Exception:
         db.session.rollback()
         raise
 
-    # Call post task if available
-    if current_migrator.records_post_task:
-        current_migrator.records_post_task.delay(record.id)
+    return str(record.id)

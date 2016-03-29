@@ -61,11 +61,11 @@ def dump(thing, query, from_date, file_prefix, chunk_size, argument):
             '{1}'.format(thing, collect_things_entry_points()))
 
     click.echo("Querying {0}...".format(thing))
-    items = thing_func.get(query, from_date, **kwargs)
+    count, items = thing_func.get(query, from_date, **kwargs)
 
     count = 0
     click.echo("Dumping {0}...".format(thing))
-    with click.progressbar(length=len(items)) as bar:
+    with click.progressbar(length=count) as bar:
         for i, chunk_ids in enumerate(grouper(items, chunk_size)):
             with open('{0}_{1}.json'.format(file_prefix, i), 'w') as fp:
                 fp.write("[\n")

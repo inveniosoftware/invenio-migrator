@@ -30,8 +30,10 @@ import json
 import sys
 
 import click
+from celery import chain
 from flask_cli import with_appcontext
 
+from .proxies import current_migrator
 from .tasks.records import import_record
 
 
@@ -54,7 +56,13 @@ def loadrecords(source, source_type):
     click.echo('Sending tasks to queue...')
     with click.progressbar(data) as records:
         for item in records:
-            import_record.delay(item, source_type=source_type)
+            if current_migrator.records_post_task:
+                chain(
+                    import_record.s(item, source_type=source_type),
+                    current_migrator.records_post_task.s()
+                )()
+            else:
+                import_record.delay(item, source_type=source_type)
 
 
 @dumps.command()

@@ -26,6 +26,8 @@
 
 from __future__ import absolute_import, print_function
 
+from os.path import splitext
+
 import arrow
 from dojson.contrib.marc21 import marc21
 from dojson.contrib.marc21.utils import create_record
@@ -108,6 +110,7 @@ class RecordDumpLoader(object):
             PersistentIdentifier.create(
                 pid_type=p.pid_type,
                 pid_value=p.pid_value,
+                pid_provider=p.provider.pid_provider,
                 object_type='rec',
                 object_uuid=record_uuid,
                 status=PIDStatus.REGISTERED,
@@ -149,11 +152,16 @@ class RecordDumpLoader(object):
         record['files'] = []
         for key, meta in files.items():
             obj = cls.create_file(b, key, meta)
+            ext = splitext(obj.key)[1].lower()
+            if ext.startswith('.'):
+                ext = ext[1:]
             record['files'].append(dict(
                 bucket=str(obj.bucket.id),
                 filename=obj.key,
+                version_id=str(obj.version_id),
                 size=obj.file.size,
                 checksum=obj.file.checksum,
+                type=ext,
             ))
         record.commit()
         db.session.commit()
