@@ -54,6 +54,7 @@ extras_require = {
         'invenio-files-rest>=1.0.0a1',
         'invenio-pidstore>=1.0.0a6',
         'invenio-records>=1.0.0a9',
+        'invenio-communities',
     ],
     'tests': tests_require,
 }
@@ -69,7 +70,7 @@ setup_requires = [
 install_requires = [
     'Click>=6.3',
     'Flask-CLI>=0.2.1',
-    'Flask>=0.10',
+    'Flask>=0.10.1',
     'six>=1.9.0',
     'Werkzeug>=0.11.4',
 ]
@@ -110,6 +111,9 @@ setup(
         'invenio_migrator.things': [
             'records = invenio_migrator.legacy.records',
             'files = invenio_migrator.legacy.bibdocfile',
+            'communities = invenio_migrator.legacy.communities',
+            'featured = invenio_migrator.legacy.featured_communities',
+            'users = invenio_migrator.legacy.users',
         ]
     },
     extras_require=extras_require,

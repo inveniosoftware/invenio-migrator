@@ -22,18 +22,26 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-include *.rst
-include *.sh
-include *.txt
-include .dockerignore
-include .editorconfig
-include LICENSE
-include pytest.ini
-recursive-include docs *.bat
-recursive-include docs *.py
-recursive-include docs *.rst
-recursive-include docs Makefile
-recursive-include examples *.py
-recursive-include tests *.json
-recursive-include tests *.py
-recursive-include tests *.jpg
+"""Community dump functions."""
+
+from __future__ import absolute_import, print_function
+
+
+def get(*args, **kwargs):
+    """Get communities."""
+    from invenio.modules.communities.models import FeaturedCommunity
+    q = FeaturedCommunity.query
+    return q.count(), q.all()
+
+
+def dump(fc, from_date, with_json=True, latest_only=False, **kwargs):
+    """Dump the community object as dictionary.
+
+    :param fc: Community featuring to be dumped.
+    :type fc: `invenio_communities.models.FeaturedCommunity [Invenio2.x]`
+    :returns: Community serialized to dictionary.
+    :rtype: dict
+    """
+    return dict(id=fc.id,
+                id_community=fc.id_community,
+                start_date=fc.start_date.isoformat())

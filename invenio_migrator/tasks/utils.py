@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#
+
 # This file is part of Invenio.
 # Copyright (C) 2016 CERN.
 #
@@ -22,18 +22,43 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-include *.rst
-include *.sh
-include *.txt
-include .dockerignore
-include .editorconfig
-include LICENSE
-include pytest.ini
-recursive-include docs *.bat
-recursive-include docs *.py
-recursive-include docs *.rst
-recursive-include docs Makefile
-recursive-include examples *.py
-recursive-include tests *.json
-recursive-include tests *.py
-recursive-include tests *.jpg
+""""Helper methods."""
+
+from __future__ import absolute_import, print_function
+
+from dateutil.parser import parse as iso2dt
+
+
+def iso2dt_or_none(iso_dt):
+    """Turn ISO-formatted date into datetime (None if 'iso_dt' is empty).
+
+    :param iso_dt: ISO-formatted date
+    :type iso_dt: str
+    :returns: datetime object or None
+    :rtype: datetime
+    """
+    return iso2dt(iso_dt) if iso_dt else None
+
+
+def logo_ext_wash(logo_ext):
+    """Handle the legacy logo extensions.
+
+    Examples:
+    None -> None
+    'png' -> 'png'
+    '0' -> None
+    '.jpg' -> 'jpg'
+
+    :param logo_ext: Community logo extension.
+    :type logo_ext: string or None
+    :returns: Washed logo extension.
+    :rtype: string or None
+    """
+    if logo_ext is None:
+        return None
+    elif logo_ext == '0':
+        return None
+    elif logo_ext.startswith('.'):
+        return logo_ext[1:]
+    else:
+        return logo_ext

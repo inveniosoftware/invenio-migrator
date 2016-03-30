@@ -22,18 +22,27 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-include *.rst
-include *.sh
-include *.txt
-include .dockerignore
-include .editorconfig
-include LICENSE
-include pytest.ini
-recursive-include docs *.bat
-recursive-include docs *.py
-recursive-include docs *.rst
-recursive-include docs Makefile
-recursive-include examples *.py
-recursive-include tests *.json
-recursive-include tests *.py
-recursive-include tests *.jpg
+"""Celery task for records migration."""
+
+from __future__ import absolute_import, print_function
+
+from celery import shared_task
+from invenio_accounts.models import User
+from invenio_db import db
+
+
+@shared_task()
+def load_user(data):
+    """Load user from data dump.
+
+    :param data: Dictionary containing user data.
+    :type data: dict
+    """
+    email = data['email']
+    if User.query.filter_by(email=data['email']).count() > 0:
+        email = 'DUPLICATE_{}'.format(data['email'])
+    obj = User(
+        id=data['id'],
+        email=email)
+    db.session.add(obj)
+    db.session.commit()

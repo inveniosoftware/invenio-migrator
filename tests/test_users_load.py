@@ -22,18 +22,21 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-include *.rst
-include *.sh
-include *.txt
-include .dockerignore
-include .editorconfig
-include LICENSE
-include pytest.ini
-recursive-include docs *.bat
-recursive-include docs *.py
-recursive-include docs *.rst
-recursive-include docs Makefile
-recursive-include examples *.py
-recursive-include tests *.json
-recursive-include tests *.py
-recursive-include tests *.jpg
+"""Module tests."""
+
+from __future__ import absolute_import, print_function
+
+from invenio_accounts.models import User
+
+from invenio_migrator.tasks.users import load_user
+
+
+def test_communities_load(db, users_dump):
+    """Load the users JSON dump."""
+    for data in users_dump:
+        load_user.delay(data)
+    db.session.commit()
+    assert User.query.count() == 2
+    u1, u2 = User.query.all()
+    assert u1.email == 'user1@invenio.org'
+    assert u2.email == 'user2@invenio.org'

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1",
+    "email": "user1@invenio.org",
+    "note": "1",
+    "given_names": "",
+    "family_name": "",
+    "settings": {"login_method": "Local"},
+    "nickname": "",
+    "last_login": ""
+  },
+  {
+    "id": "2",
+    "email": "user2@invenio.org",
+    "note": "1",
+    "given_names": "",
+    "family_name": "",
+    "settings": {"login_method": "Local"},
+    "nickname": "",
+    "last_login": "2016-02-05T11:18:33"
+  }
+]

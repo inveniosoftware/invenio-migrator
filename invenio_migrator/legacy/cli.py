@@ -63,7 +63,7 @@ def dump(thing, query, from_date, file_prefix, chunk_size, argument):
     click.echo("Querying {0}...".format(thing))
     count, items = thing_func.get(query, from_date, **kwargs)
 
-    count = 0
+    progress_i = 0  # Progress bar counter
     click.echo("Dumping {0}...".format(thing))
     with click.progressbar(length=count) as bar:
         for i, chunk_ids in enumerate(grouper(items, chunk_size)):
@@ -74,11 +74,11 @@ def dump(thing, query, from_date, file_prefix, chunk_size, argument):
                         json.dump(
                             thing_func.dump(_id, from_date, **kwargs), fp)
                         fp.write(",")
-                    except Exception:
-                        click.secho(
-                            "Failed dump {0} {1}".format(thing, _id), fg='red')
-                    count += 1
-                    bar.update(count)
+                    except Exception as e:
+                        click.secho("Failed dump {0} {1} ({2})".format(
+                            thing, _id, e.message), fg='red')
+                    progress_i += 1
+                    bar.update(progress_i)
 
                 # Strip trailing comma.
                 fp.seek(fp.tell()-1)

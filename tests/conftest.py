@@ -38,6 +38,8 @@ from flask import Flask
 from flask_babelex import Babel
 from flask_celeryext import FlaskCeleryExt
 from flask_cli import FlaskCLI, ScriptInfo
+from invenio_accounts import InvenioAccounts
+from invenio_communities import InvenioCommunities
 from invenio_db import db as db_
 from invenio_db import InvenioDB
 from invenio_files_rest import InvenioFilesREST
@@ -72,11 +74,14 @@ def app(request):
         SQLALCHEMY_DATABASE_URI=os.environ.get(
             'SQLALCHEMY_DATABASE_URI',
             'sqlite:///:memory:'),
+        SECURITY_PASSWORD_SALT='TEST',
     )
     FlaskCLI(app_)
     FlaskCeleryExt(app_)
     InvenioDB(app_)
     InvenioRecords(app_)
+    InvenioAccounts(app_)
+    InvenioCommunities(app_)
     InvenioPIDStore(app_)
     Babel(app_)
     InvenioFilesREST(app_)
@@ -128,9 +133,51 @@ def datadir():
 
 
 @pytest.fixture()
+def logos_dir(datadir):
+    """Get data directory."""
+    return join(datadir, 'community_logos')
+
+
+@pytest.fixture()
 def records_json(datadir):
     """Load records json."""
     with open(join(datadir, 'records.json')) as fp:
+        records = json.load(fp)
+    return records
+
+
+@pytest.fixture()
+def communities_dump(datadir):
+    """Load test data of dumped communities.
+
+    :returns: Loaded dump of communities as a list of dict.
+    :rtype: list
+    """
+    with open(join(datadir, 'communities.json')) as fp:
+        records = json.load(fp)
+    return records
+
+
+@pytest.fixture()
+def featured_dump(datadir):
+    """Load test data of dumped community featurings.
+
+    :returns: Loaded dump of community featurings as a list of dict.
+    :rtype: list
+    """
+    with open(join(datadir, 'featured.json')) as fp:
+        records = json.load(fp)
+    return records
+
+
+@pytest.fixture()
+def users_dump(datadir):
+    """Load test data of dumped users.
+
+    :returns: Loaded dump of users as a list of dict.
+    :rtype: list
+    """
+    with open(join(datadir, 'users.json')) as fp:
         records = json.load(fp)
     return records
 

@@ -22,18 +22,35 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-include *.rst
-include *.sh
-include *.txt
-include .dockerignore
-include .editorconfig
-include LICENSE
-include pytest.ini
-recursive-include docs *.bat
-recursive-include docs *.py
-recursive-include docs *.rst
-recursive-include docs Makefile
-recursive-include examples *.py
-recursive-include tests *.json
-recursive-include tests *.py
-recursive-include tests *.jpg
+"""Community dump functions."""
+
+from __future__ import absolute_import, print_function
+
+from .utils import dt2iso_or_empty
+
+
+def get(*args, **kwargs):
+    """Get users."""
+    from invenio.modules.accounts.models import User
+    q = User.query
+    return q.count(), q.all()
+
+
+def dump(u, from_date, with_json=True, latest_only=False, **kwargs):
+    """Dump the users as a list of dictionaries.
+
+    TODO: This is only dumping user info without passwords.
+
+    :param u: User to be dumped.
+    :type u: `invenio_accounts.models.User [Invenio2.x]`
+    :returns: User serialized to dictionary.
+    :rtype: dict
+    """
+    return dict(id=u.id,
+                email=u.email,
+                note=u.note,
+                given_names=u.given_names,
+                family_name=u.family_name,
+                settings=u.settings,
+                nickname=u.nickname,
+                last_login=dt2iso_or_empty(u.last_login))

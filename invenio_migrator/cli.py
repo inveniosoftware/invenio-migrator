@@ -34,7 +34,9 @@ from celery import chain
 from flask_cli import with_appcontext
 
 from .proxies import current_migrator
+from .tasks.communities import load_community, load_featured
 from .tasks.records import import_record
+from .tasks.users import load_user
 
 
 @click.group()
@@ -116,3 +118,40 @@ def inspectrecords(source, recid, entity=None):
                     'Revision {0}'.format(revision['marcxml']),
                     fg='yellow')
                 click.echo(revision)
+
+
+@dumps.command()
+@click.argument('source', type=click.File('r'), default=sys.stdin)
+@click.argument('logos_dir', type=click.Path(exists=True), default=None)
+@with_appcontext
+def loadcommunities(source, logos_dir):
+    """Load communities."""
+    click.echo('Loading dump...')
+    data = json.load(source)
+    with click.progressbar(data) as communities:
+        for c in communities:
+            load_community(c, logos_dir)
+
+
+@dumps.command()
+@click.argument('source', type=click.File('r'), default=sys.stdin)
+@with_appcontext
+def loadfeatured(source):
+    """Load community featurings."""
+    click.echo('Loading dump...')
+    data = json.load(source)
+    with click.progressbar(data) as featured:
+        for fc in featured:
+            load_featured(fc)
+
+
+@dumps.command()
+@click.argument('source', type=click.File('r'), default=sys.stdin)
+@with_appcontext
+def loadusers(source):
+    """Load users."""
+    click.echo('Loading dump...')
+    data = json.load(source)
+    with click.progressbar(data) as users:
+        for u in users:
+            load_user(u)

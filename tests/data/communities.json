@@ -1,0 +1,19 @@
+[
+  {
+    "id": "invenio",
+    "id_user": 1,
+    "title": "Invenio Community",
+    "description": "Description",
+    "page": "",
+    "curation_policy": "",
+    "last_record_accepted": "",
+    "logo_ext": "jpg",
+    "ranking": 1000,
+    "fixed_points": 0,
+    "created": "2013-05-05T20:00:00",
+    "last_modified": "2014-05-05T20:00:00",
+    "id_collection_provisional": 1,
+    "id_oairepository": 1,
+    "id_collection": 1
+  }
+]

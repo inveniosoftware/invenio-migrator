@@ -70,3 +70,14 @@ def init_app_context():
 def datetime_toutc(dt):
     """Convert local datetime to UTC."""
     return dt.replace(tzinfo=tzlocal()).astimezone(tzutc())
+
+
+def dt2iso_or_empty(dt):
+    """Turn datetime object into ISO string (empty if 'dt' is None).
+
+    :param dt: Datetime object
+    :type dt: datetime.datetime
+    :returns: ISO-formatted date or empty string
+    :rtype: str
+    """
+    return '' if (dt is None) else dt.isoformat()
