@@ -54,7 +54,12 @@ extras_require = {
         'invenio-files-rest>=1.0.0a1',
         'invenio-pidstore>=1.0.0a6',
         'invenio-records>=1.0.0a9',
-        'invenio-communities',
+    ],
+    'communities': [
+        'invenio-communities>=1.0.0a1',
+    ],
+    'userprofiles': [
+        'invenio-userprofiles>=1.0.0a4',
     ],
     'tests': tests_require,
 }
@@ -64,7 +69,7 @@ for reqs in extras_require.values():
     extras_require['all'].extend(reqs)
 
 setup_requires = [
-    'pytest-runner>=2.6.2',
+    'pytest-runner>=2.7.0',
 ]
 
 install_requires = [

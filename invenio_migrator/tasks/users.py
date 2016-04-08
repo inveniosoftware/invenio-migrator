@@ -26,9 +26,15 @@
 
 from __future__ import absolute_import, print_function
 
+import uuid
+from datetime import datetime
+
+import arrow
 from celery import shared_task
+from flask import current_app
 from invenio_accounts.models import User
 from invenio_db import db
+from invenio_userprofiles.api import UserProfile
 
 
 @shared_task()
@@ -41,8 +47,46 @@ def load_user(data):
     email = data['email']
     if User.query.filter_by(email=data['email']).count() > 0:
         email = 'DUPLICATE_{}'.format(data['email'])
-    obj = User(
-        id=data['id'],
-        email=email)
-    db.session.add(obj)
+
+    last_login = None
+    if data['last_login']:
+        last_login = arrow.get(data['last_login']).datetime
+
+    confirmed_at = None
+    if data['note'] == '1':
+        confirmed_at = datetime.utcnow()
+
+    with db.session.begin_nested():
+        obj = User(
+            id=data['id'],
+            password=None,
+            email=email,
+            confirmed_at=confirmed_at,
+            last_login_at=last_login,
+            active=(data['note'] != '0'),
+        )
+        db.session.add(obj)
+
+    nickname = data['nickname'].strip()
+    if nickname:
+        full_name = (data.get('given_names', '') + ' ' +
+                     data.get('family_name', '')).strip()
+
+        if UserProfile.query.filter(
+                UserProfile._username == nickname.lower()).count() > 0:
+            nickname = 'DUPLICATE_{0}_{1}'.format(str(uuid.uuid4()), nickname)
+
+        p = UserProfile(user=obj)
+        p.full_name = full_name or ''
+        try:
+            p.username = nickname
+        except ValueError:
+            current_app.logger.warn(
+                'Invalid username {0} for user_id {1}'.format(
+                    nickname, data['id']))
+            p._username = nickname.lower()
+            p._displayname = nickname
+
+        db.session.add(p)
+
     db.session.commit()

@@ -80,4 +80,4 @@ def dt2iso_or_empty(dt):
     :returns: ISO-formatted date or empty string
     :rtype: str
     """
-    return '' if (dt is None) else dt.isoformat()
+    return '' if (dt is None) else datetime_toutc(dt).isoformat()
