@@ -34,9 +34,7 @@ from celery import chain
 from flask_cli import with_appcontext
 
 from .proxies import current_migrator
-from .tasks.communities import load_community, load_featured
 from .tasks.records import import_record
-from .tasks.users import load_user
 
 
 @click.group()
@@ -126,6 +124,7 @@ def inspectrecords(source, recid, entity=None):
 @with_appcontext
 def loadcommunities(source, logos_dir):
     """Load communities."""
+    from invenio_migrator.tasks.communities import load_community
     click.echo('Loading dump...')
     data = json.load(source)
     with click.progressbar(data) as communities:
@@ -138,6 +137,7 @@ def loadcommunities(source, logos_dir):
 @with_appcontext
 def loadfeatured(source):
     """Load community featurings."""
+    from invenio_migrator.tasks.communities import load_featured
     click.echo('Loading dump...')
     data = json.load(source)
     with click.progressbar(data) as featured:
@@ -150,6 +150,7 @@ def loadfeatured(source):
 @with_appcontext
 def loadusers(source):
     """Load users."""
+    from .tasks.users import load_user
     click.echo('Loading dump...')
     data = json.load(source)
     with click.progressbar(data) as users:
