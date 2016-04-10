@@ -69,7 +69,7 @@ def load_user(data):
 
     nickname = data['nickname'].strip()
     if nickname:
-        full_name = (data.get('given_names', '') + ' ' +
+        full_name = (data.get('given_names', '') + u' ' +
                      data.get('family_name', '')).strip()
 
         if UserProfile.query.filter(
@@ -82,7 +82,7 @@ def load_user(data):
             p.username = nickname
         except ValueError:
             current_app.logger.warn(
-                'Invalid username {0} for user_id {1}'.format(
+                u'Invalid username {0} for user_id {1}'.format(
                     nickname, data['id']))
             p._username = nickname.lower()
             p._displayname = nickname
