@@ -40,7 +40,7 @@ def _get_recids_invenio12(from_date):
         'select id_bibrec from '
         'bibrec_bibdoc as r join bibdoc as d on r.id_bibdoc=d.id '
         'where d.modification_date >=%s',
-        (from_date, )))
+        (from_date, ), run_on_slave=True))
 
 
 def _get_recids_invenio2(from_date):
@@ -50,7 +50,7 @@ def _get_recids_invenio2(from_date):
         'select id_bibrec from '
         'bibrec_bibdoc as r join bibdoc as d on r.id_bibdoc=d.id '
         'where d.modification_date >=%s',
-        (from_date, )))
+        (from_date, ), run_on_slave=True))
 
 
 def get_modified_bibdoc_recids(from_date):
@@ -135,8 +135,8 @@ def get_check():
         from invenio.legacy.dbquery import run_sql
 
     return (
-        run_sql('select count(id) from bibdoc')[0][0],
-        [id[0] for id in run_sql('select id from bibdoc')],
+        run_sql('select count(id) from bibdoc', run_on_slave=True)[0][0],
+        [id[0] for id in run_sql('select id from bibdoc', run_on_slave=True)],
     )
 
 

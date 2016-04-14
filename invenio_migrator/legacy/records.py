@@ -27,6 +27,7 @@
 from __future__ import absolute_import, print_function
 
 import datetime
+import zlib
 
 from .bibdocfile import dump_bibdoc, get_modified_bibdoc_recids
 from .utils import datetime_toutc
@@ -38,7 +39,7 @@ def _get_modified_recids_invenio12(from_date):
     from invenio.dbquery import run_sql
     return set((id[0] for id in run_sql(
         'select id from bibrec where modification_date >= %s',
-        (from_date, )))), search_pattern
+        (from_date, ), run_on_slave=True))), search_pattern
 
 
 def _get_modified_recids_invenio2(from_date):
@@ -59,16 +60,17 @@ def get_modified_recids(from_date):
         return _get_modified_recids_invenio2(from_date)
 
 
-def _import_get_revisions():
-    """Wrap imports."""
+def get_record_revisions(recid, from_date):
+    """Get record revisions."""
     try:
-        from invenio.bibedit_engine import get_record_revisions, \
-            get_marcxml_of_revision_id
+        from invenio.dbquery import run_sql
     except ImportError:
-        from invenio.legacy.bibedit.engine import get_marcxml_of_revision_id
-        from invenio.legacy.bibedit.db_layer import get_record_revisions
+        from invenio.legacy.dbquery import run_sql
 
-    return get_record_revisions, get_marcxml_of_revision_id
+    return run_sql(
+        'SELECT job_date, marcxml '
+        'FROM hstRECORD WHERE id_bibrec = %s AND job_date >= %s '
+        'ORDER BY job_date ASC', (recid, from_date), run_on_slave=True)
 
 
 def dump_record_json(marcxml):
@@ -101,27 +103,19 @@ def dump(recid, from_date, with_json=True, latest_only=False, **kwargs):
     :param json_converter: Function to convert the record to JSON
     :returns: List of versions of the record.
     """
-    get_record_revisions, get_marcxml_of_revision_id = _import_get_revisions()
-
     date = datetime.datetime.strptime(from_date, '%Y-%m-%d %H:%M:%S')
 
     # Grab latest only
     if latest_only:
-        revision_iter = [get_record_revisions(recid)[0]]
+        revision_iter = [get_record_revisions(recid, from_date)[0]]
     else:
-        revision_iter = reversed(get_record_revisions(recid))
+        revision_iter = get_record_revisions(recid, from_date)
 
     # Dump revisions
     record_dump = dict(record=[], files=[], recid=recid)
 
-    for revision in revision_iter:
-        revision_date = datetime.datetime.strptime(
-            revision[1], '%Y%m%d%H%M%S')
-        if date is not None and revision_date < date:
-            continue
-
-        marcxml = get_marcxml_of_revision_id(*revision)
-
+    for revision_date, revision_marcxml in revision_iter:
+        marcxml = zlib.decompress(revision_marcxml)
         record_dump['record'].append(dict(
             modification_datetime=datetime_toutc(revision_date).isoformat(),
             marcxml=marcxml,
