@@ -87,7 +87,8 @@ def get(query, from_date, **kwargs):
     recids = recids.union(get_modified_bibdoc_recids(from_date))
 
     if query:
-        return recids.intersection(set(search_pattern(p=query)))
+        recids = recids.intersection(
+            set(search_pattern(p=query.encode('utf-8'))))
 
     return len(recids), recids
 
