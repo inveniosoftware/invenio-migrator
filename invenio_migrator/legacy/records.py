@@ -107,7 +107,7 @@ def dump(recid, from_date, with_json=True, latest_only=False, **kwargs):
 
     # Grab latest only
     if latest_only:
-        revision_iter = [get_record_revisions(recid, from_date)[0]]
+        revision_iter = [get_record_revisions(recid, from_date)[-1]]
     else:
         revision_iter = get_record_revisions(recid, from_date)
 
