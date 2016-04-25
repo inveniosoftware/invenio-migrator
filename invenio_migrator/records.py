@@ -101,7 +101,7 @@ class RecordDumpLoader(object):
             record.model.json = revision
             record.model.created = timestamp.replace(tzinfo=None)
             db.session.commit()
-        return record
+        return Record(record.model.json, model=record.model)
 
     @staticmethod
     def create_pids(record_uuid, pids):
