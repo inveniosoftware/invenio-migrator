@@ -39,6 +39,7 @@ from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
     RecordIdentifier
 from invenio_pidstore.resolver import Resolver
 from invenio_records.api import Record
+from invenio_records_files.models import RecordsBuckets
 from werkzeug.utils import cached_property
 
 
@@ -163,6 +164,9 @@ class RecordDumpLoader(object):
                 checksum=obj.file.checksum,
                 type=ext,
             ))
+        db.session.add(
+            RecordsBuckets(record_id=record.id, bucket_id=b.id)
+        )
         record.commit()
         db.session.commit()
 
