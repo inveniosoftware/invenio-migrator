@@ -55,7 +55,7 @@ def test_new_record(app, db, dummy_location, record_dump, resolver):
 
     assert len(record['files']) == 1
     f = record['files'][0]
-    obj = ObjectVersion.get(f['bucket'], f['filename'])
+    obj = ObjectVersion.get(f['bucket'], f['key'])
     assert obj.file.checksum == f['checksum']
     assert obj.file.size == f['size']
 
@@ -88,7 +88,7 @@ def test_update_record(app, db, dummy_location, record_dump, record_db,
 
     assert len(record['files']) == 1
     f = record['files'][0]
-    obj = ObjectVersion.get(f['bucket'], f['filename'])
+    obj = ObjectVersion.get(f['bucket'], f['key'])
     assert obj.file.checksum != record_file['checksum']
     assert obj.file.size != record_file['size']
 

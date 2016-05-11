@@ -41,4 +41,4 @@ def test_import_record(app, db, dummy_location, record_dump, records_json,
     pid, record = resolver.resolve('11782')
     assert len(record['files']) == 1
     assert ObjectVersion.get(
-        record['files'][0]['bucket'], record['files'][0]['filename'])
+        record['files'][0]['bucket'], record['files'][0]['key'])

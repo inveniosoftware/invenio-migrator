@@ -226,7 +226,7 @@ def record_file(db, dummy_location):
     db.session.commit()
     return dict(
         bucket=str(obj.bucket_id),
-        filename=obj.key,
+        key=obj.key,
         size=obj.file.size,
         checksum=obj.file.checksum,
     )

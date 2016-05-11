@@ -158,7 +158,7 @@ class RecordDumpLoader(object):
                 ext = ext[1:]
             record['files'].append(dict(
                 bucket=str(obj.bucket.id),
-                filename=obj.key,
+                key=obj.key,
                 version_id=str(obj.version_id),
                 size=obj.file.size,
                 checksum=obj.file.checksum,
