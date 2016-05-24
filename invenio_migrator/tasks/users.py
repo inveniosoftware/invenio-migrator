@@ -56,10 +56,17 @@ def load_user(data):
     if data['note'] == '1':
         confirmed_at = datetime.utcnow()
 
+    salt = data['password_salt']
+    checksum = data['password']
+    # Test if password hash is in Modular Crypt Format
+    if checksum.startswith('$'):
+        new_password = checksum
+    else:
+        new_password = str.join('$', ['', u'invenio-aes', salt, checksum])
     with db.session.begin_nested():
         obj = User(
             id=data['id'],
-            password=None,
+            password=new_password,
             email=email,
             confirmed_at=confirmed_at,
             last_login_at=last_login,

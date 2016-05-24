@@ -65,6 +65,7 @@ extras_require = {
     ],
     'userprofiles': [
         'invenio-userprofiles>=1.0.0a4',
+        'Flask-Security>=1.7.5',
     ],
     'tests': tests_require,
 }

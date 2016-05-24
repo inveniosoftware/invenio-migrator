@@ -39,8 +39,6 @@ def get(*args, **kwargs):
 def dump(u, from_date, with_json=True, latest_only=False, **kwargs):
     """Dump the users as a list of dictionaries.
 
-    TODO: This is only dumping user info without passwords.
-
     :param u: User to be dumped.
     :type u: `invenio_accounts.models.User [Invenio2.x]`
     :returns: User serialized to dictionary.
@@ -48,6 +46,8 @@ def dump(u, from_date, with_json=True, latest_only=False, **kwargs):
     """
     return dict(id=u.id,
                 email=u.email,
+                password=u.password,
+                password_salt=u.password_salt,
                 note=u.note,
                 given_names=u.given_names,
                 family_name=u.family_name,

@@ -2,6 +2,8 @@
   {
     "id": "1",
     "email": "user1@invenio.org",
+    "password": "9e9ce44cd9df2b201f51947e03bccbe2",
+    "password_salt": "user1@invenio.org",
     "note": "1",
     "given_names": "",
     "family_name": "",
@@ -12,6 +14,8 @@
   {
     "id": "2",
     "email": "user2@invenio.org",
+    "password": "adklfhaty489g43956349562937525asdfsdf",
+    "password_salt": "user2@invenio.org",
     "note": "1",
     "given_names": "",
     "family_name": "",
