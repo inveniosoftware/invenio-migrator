@@ -53,8 +53,8 @@ def test_new_record(app, db, dummy_location, record_dump, resolver):
     # Test the PIDs are extracted and created
     assert PersistentIdentifier.get('doi', '10.5281/zenodo.11782')
 
-    assert len(record['files']) == 1
-    f = record['files'][0]
+    assert len(record['_files']) == 1
+    f = record['_files'][0]
     obj = ObjectVersion.get(f['bucket'], f['key'])
     assert obj.file.checksum == f['checksum']
     assert obj.file.size == f['size']
@@ -66,7 +66,7 @@ def test_update_record(app, db, dummy_location, record_dump, record_db,
                        resolver, record_file):
     """Test update of a record."""
     # Smoke test
-    record_db['files'] = [record_file]
+    record_db['_files'] = [record_file]
     record_db.commit()
     db.session.commit()
 
@@ -86,8 +86,8 @@ def test_update_record(app, db, dummy_location, record_dump, record_db,
     assert ObjectVersion.query.filter_by(is_head=True).count() == 1
     assert FileInstance.query.count() == 2
 
-    assert len(record['files']) == 1
-    f = record['files'][0]
+    assert len(record['_files']) == 1
+    f = record['_files'][0]
     obj = ObjectVersion.get(f['bucket'], f['key'])
     assert obj.file.checksum != record_file['checksum']
     assert obj.file.size != record_file['size']

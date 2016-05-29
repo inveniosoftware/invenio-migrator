@@ -39,6 +39,6 @@ def test_import_record(app, db, dummy_location, record_dump, records_json,
     import_record(records_json[0], source_type='json')
     assert RecordMetadata.query.count() == 1
     pid, record = resolver.resolve('11782')
-    assert len(record['files']) == 1
+    assert len(record['_files']) == 1
     assert ObjectVersion.get(
-        record['files'][0]['bucket'], record['files'][0]['key'])
+        record['_files'][0]['bucket'], record['_files'][0]['key'])

@@ -56,7 +56,7 @@ class RecordDumpLoader(object):
         # Create or update?
         existing_files = []
         if dump.record:
-            existing_files = dump.record.get('files', [])
+            existing_files = dump.record.get('_files', [])
             record = cls.update_record(dump)
             pids = dump.missing_pids
         else:
@@ -150,13 +150,13 @@ class RecordDumpLoader(object):
         else:
             b = Bucket.get(default_bucket)
 
-        record['files'] = []
+        record['_files'] = []
         for key, meta in files.items():
             obj = cls.create_file(b, key, meta)
             ext = splitext(obj.key)[1].lower()
             if ext.startswith('.'):
                 ext = ext[1:]
-            record['files'].append(dict(
+            record['_files'].append(dict(
                 bucket=str(obj.bucket.id),
                 key=obj.key,
                 version_id=str(obj.version_id),
@@ -194,7 +194,7 @@ class RecordDumpLoader(object):
     @staticmethod
     def delete_buckets(record):
         """Delete the bucket."""
-        files = record.get('files', [])
+        files = record.get('_files', [])
         buckets = set()
         for f in files:
             buckets.add(f.get('bucket'))
