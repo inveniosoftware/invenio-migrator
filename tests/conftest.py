@@ -39,11 +39,14 @@ from flask_babelex import Babel
 from flask_celeryext import FlaskCeleryExt
 from flask_cli import FlaskCLI, ScriptInfo
 from invenio_accounts import InvenioAccounts
+from invenio_accounts.models import User
 from invenio_communities import InvenioCommunities
 from invenio_db import db as db_
 from invenio_db import InvenioDB
+from invenio_deposit import InvenioDeposit
 from invenio_files_rest import InvenioFilesREST
 from invenio_files_rest.models import Bucket, Location, ObjectVersion
+from invenio_jsonschemas.ext import InvenioJSONSchemas
 from invenio_pidstore import InvenioPIDStore
 from invenio_pidstore.fetchers import FetchedPID
 from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
@@ -51,6 +54,7 @@ from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
 from invenio_pidstore.resolver import Resolver
 from invenio_records import InvenioRecords
 from invenio_records.api import Record
+from invenio_sipstore.ext import InvenioSIPStore
 from six import BytesIO
 from sqlalchemy_utils.functions import create_database, database_exists
 
@@ -80,9 +84,12 @@ def app(request):
     FlaskCeleryExt(app_)
     InvenioDB(app_)
     InvenioRecords(app_)
+    InvenioDeposit(app_)
+    InvenioJSONSchemas(app_)
     InvenioAccounts(app_)
     InvenioCommunities(app_)
     InvenioPIDStore(app_)
+    InvenioSIPStore(app_)
     Babel(app_)
     InvenioFilesREST(app_)
     InvenioMigrator(app_)
@@ -154,6 +161,44 @@ def communities_dump(datadir):
     :rtype: list
     """
     with open(join(datadir, 'communities.json')) as fp:
+        records = json.load(fp)
+    return records
+
+
+@pytest.fixture()
+def deposit_user(db):
+    """Test user for deposit loading."""
+    u1 = User(id=1, email='user@invenio.org',
+              password='change_me', active=True)
+
+    db.session.add(u1)
+    db.session.commit()
+    return u1
+
+
+@pytest.fixture()
+def deposit_record_pid(db):
+    """Test record PID for deposit loading."""
+    rec = Record.create({'title': 'Test'})
+    rec_pid = PersistentIdentifier.create(
+        pid_type='recid',
+        pid_value='10',
+        object_type='rec',
+        object_uuid=rec.id,
+        status=PIDStatus.REGISTERED,
+    )
+    db.session.commit()
+    return rec_pid
+
+
+@pytest.fixture()
+def deposit_dump(datadir):
+    """Load test data of dumped deposits.
+
+    :returns: Loaded dump of deposits as a list of dict.
+    :rtype: list
+    """
+    with open(join(datadir, 'deposit.json')) as fp:
         records = json.load(fp)
     return records
 

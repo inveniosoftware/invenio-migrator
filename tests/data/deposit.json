@@ -1,0 +1,104 @@
+[
+  {
+    "type": "upload",
+    "title": "Test title 1",
+    "drafts": {
+      "_default": {
+        "values": {
+          "doi": "",
+          "notes": "",
+          "access_right": "open",
+          "title": "Test title 1",
+          "upload_type": "publication"
+        },
+        "completed": true
+      }
+    },
+    "sips": [
+      {
+        "metadata": {
+          "owner": {
+            "username": "InvenioUser",
+            "email": "user@invenio.org",
+            "id": 1,
+            "deposition_id": 1
+          },
+          "related_identifiers": [],
+          "thesis_supervisors": [],
+          "recid": 10,
+          "grants": [],
+          "provisional_communities": [
+            "zenodo"
+          ],
+          "publication_date": "2000-01-01",
+          "fft": [
+            {
+              "path": "/path/to/file/foobar.pdf",
+              "comment": "0",
+              "name": "foobar.pdf",
+              "restriction": "firerole: allow any"
+            }
+          ],
+          "access_right": "open",
+          "title": "Test title 1",
+          "keywords": [
+            "TestKeyword1"
+          ],
+          "upload_type.type": "publication",
+          "communities": [],
+          "doi": "10.1234/zenodo.000000001",
+          "upload_type.subtype": "article",
+          "description": "Test Description",
+          "authors": [
+            {
+              "affiliation": "Affiliation 1",
+              "name": "Doe, John"
+            },
+            {
+              "affiliation": "Affiliation 2",
+              "name": "Doe, Jane"
+            }
+          ],
+          "license": {
+            "url": "http://www.opendefinition.org/licenses/cc-by",
+            "identifier": "cc-by",
+            "source": "opendefinition.org",
+            "license": "Creative Commons Attribution"
+          }
+        },
+        "package": "TestPackageInformation",
+        "agents": [
+          {
+            "role": "creator",
+            "user_id": 1,
+            "ip_address": "10.10.10.10",
+            "email_address": "user@invenio.org"
+          }
+        ],
+        "task_ids": [
+          1234
+        ],
+        "id": "11111111-1111-1111-1111-111111111111",
+        "timestamp": "2013-01-01T01:00:00.000000+00:00"
+      }
+    ],
+    "files": [
+      {
+        "path": "/path/to/file/bazbar.pdf",
+        "size": 12345,
+        "id": "22222222-2222-2222-2222-222222222222",
+        "name": "bazbar.pdf",
+        "checksum": "00000000000000000000000000000000"
+      }
+    ],
+    "_p": {
+      "submitted": true,
+      "user_id": 1,
+      "state": "done",
+      "id": 1,
+      "modified": "2013-01-01T01:00:00+00:00",
+      "has_sip": true,
+      "created": "2012-01-01T01:00:00+00:00"
+    }
+  }
+]

@@ -129,7 +129,7 @@ def loadcommunities(source, logos_dir):
     data = json.load(source)
     with click.progressbar(data) as communities:
         for c in communities:
-            load_community(c, logos_dir)
+            load_community.delay(c, logos_dir)
 
 
 @dumps.command()
@@ -142,7 +142,7 @@ def loadfeatured(source):
     data = json.load(source)
     with click.progressbar(data) as featured:
         for fc in featured:
-            load_featured(fc)
+            load_featured.delay(fc)
 
 
 @dumps.command()
@@ -155,4 +155,17 @@ def loadusers(source):
     data = json.load(source)
     with click.progressbar(data) as users:
         for u in users:
-            load_user(u)
+            load_user.delay(u)
+
+
+@dumps.command()
+@click.argument('source', type=click.File('r'), default=sys.stdin)
+@with_appcontext
+def loaddeposit(source):
+    """Load deposit."""
+    from .tasks.deposit import load_deposit
+    click.echo('Loading dump...')
+    data = json.load(source)
+    with click.progressbar(data) as deposits:
+        for d in deposits:
+            load_deposit.delay(d)

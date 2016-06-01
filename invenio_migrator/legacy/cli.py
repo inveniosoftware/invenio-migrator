@@ -45,8 +45,9 @@ def cli():
 @click.option('-f', '--from-date', default='1970-01-01 00:00:00')
 @click.option('--file-prefix', default=None)
 @click.option('--chunk-size', default=1000)
+@click.option('--limit', type=int, default=0)
 @click.option('-a', '--argument', multiple=True)
-def dump(thing, query, from_date, file_prefix, chunk_size, argument):
+def dump(thing, query, from_date, file_prefix, chunk_size, limit, argument):
     """Dump data from Invenio legacy."""
     init_app_context()
 
@@ -61,7 +62,7 @@ def dump(thing, query, from_date, file_prefix, chunk_size, argument):
             '{1}'.format(thing, collect_things_entry_points()))
 
     click.echo("Querying {0}...".format(thing))
-    count, items = thing_func.get(query, from_date, **kwargs)
+    count, items = thing_func.get(query, from_date, limit=limit, **kwargs)
 
     progress_i = 0  # Progress bar counter
     click.echo("Dumping {0}...".format(thing))

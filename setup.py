@@ -57,6 +57,8 @@ extras_require = {
         'invenio-pidstore>=1.0.0a6',
         'invenio-records>=1.0.0a9',
         'invenio-records-files>=1.0.0a1',
+        'invenio-deposit>=1.0.0.dev20160404',
+        'invenio-sipstore>=1.0.0a1',
     ],
     'communities': [
         'invenio-communities>=1.0.0a1',
@@ -77,7 +79,7 @@ setup_requires = [
 
 install_requires = [
     'Click>=6.3',
-    'six>=1.9.0',
+    'six>=1.10.0',
     'Werkzeug>=0.11.4',
 ]
 
@@ -112,7 +114,10 @@ setup(
             'invenio_migrator = invenio_migrator.ext:InvenioMigrator',
         ],
         'invenio_celery.tasks': [
-            'invenio_migrator = invenio_migrator.tasks.records',
+            'communities = invenio_migrator.tasks.communities',
+            'deposit = invenio_migrator.tasks.deposit',
+            'records = invenio_migrator.tasks.records',
+            'users = invenio_migrator.tasks.users',
         ],
         'invenio_migrator.things': [
             'records = invenio_migrator.legacy.records',
@@ -120,6 +125,7 @@ setup(
             'communities = invenio_migrator.legacy.communities',
             'featured = invenio_migrator.legacy.featured_communities',
             'users = invenio_migrator.legacy.users',
+            'deposit = invenio_migrator.legacy.deposit',
         ]
     },
     extras_require=extras_require,
