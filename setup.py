@@ -57,8 +57,10 @@ extras_require = {
         'invenio-pidstore>=1.0.0a6',
         'invenio-records>=1.0.0a9',
         'invenio-records-files>=1.0.0a1',
-        'invenio-deposit>=1.0.0.dev20160404',
         'invenio-sipstore>=1.0.0a1',
+    ],
+    'deposit': [
+        'invenio-deposit>=1.0.0.dev20160404',
     ],
     'communities': [
         'invenio-communities>=1.0.0a1',
