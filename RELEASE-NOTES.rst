@@ -1,8 +1,8 @@
 ===========================
- Invenio-Migrator v1.0.0a5
+ Invenio-Migrator v1.0.0a6
 ===========================
 
-Invenio-Migrator v1.0.0a5 was released on May 29, 2016.
+Invenio-Migrator v1.0.0a6 was released on June 13, 2016.
 
 About
 -----
@@ -19,7 +19,7 @@ What's new
 Installation
 ------------
 
-   $ pip install invenio-migrator==1.0.0a5
+   $ pip install invenio-migrator==1.0.0a6
 
 Documentation
 -------------
