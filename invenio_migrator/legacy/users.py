@@ -31,7 +31,10 @@ from .utils import dt2iso_or_empty
 
 def get(*args, **kwargs):
     """Get users."""
-    from invenio.modules.accounts.models import User
+    try:
+        from invenio.modules.accounts.models import User
+    except ImportError:
+        from invenio_accounts.models import User
     q = User.query
     return q.count(), q.all()
 
