@@ -1,4 +1,3 @@
-#!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
@@ -23,9 +22,18 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-pydocstyle invenio_migrator tests && \
-isort -rc -c -df **/*.py && \
-check-manifest --ignore ".travis-*" && \
-sphinx-build -qnNW docs docs/_build/html && \
-python setup.py test && \
-sphinx-build -qnNW -b doctest docs docs/_build/doctest
+"""Module tests."""
+
+from __future__ import absolute_import, print_function
+
+from invenio_migrator.tasks.oauthclient import load_remoteaccount, \
+    load_remotetoken
+
+
+def test_oauth_load(dummy_location, oauthclient_dump, deposit_user, app):
+    """Test the deposit loading function."""
+    remoteaccounts, remotetokens = oauthclient_dump
+    for ra in remoteaccounts:
+        load_remoteaccount(ra)
+    for rt in remotetokens:
+        load_remotetoken(rt)

@@ -1,0 +1,57 @@
+{
+  "remoteaccounts": [
+    {
+    "client_id": "12341234123412341234",
+    "extra_data": {
+      "last_sync": "2016-01-08T13:17:47.481212+00:00",
+      "login": "johndoe",
+      "name": "John Doe",
+      "repos": {
+        "johndoe/foobar": {
+          "description": "John Doe's repository",
+          "hook": 12345,
+          "depositions": [
+            {
+              "record_id": 1,
+              "submitted": "2001-01-01T10:10:10+00:00",
+              "errors": null,
+              "deposition_id": 1,
+              "doi": "10.1234/zenodo.1",
+              "github_ref": "v0.1.0"
+            },
+            {
+              "record_id": 2,
+              "submitted": "2005-01-01T10:10:10+00:00",
+              "errors": null,
+              "deposition_id": 2,
+              "doi": "10.1234/zenodo.2",
+              "github_ref": "v0.2.0"
+            }
+          ],
+          "errors": null
+        },
+        "johndoe/bazbar": {
+          "description": "",
+          "hook": null,
+          "depositions": [],
+          "errors": null
+        }
+      },
+      "tokens": {
+        "webhook": 123,
+        "internal": 123
+      }
+    },
+    "id": 10,
+    "user_id": 1
+    }
+  ],
+  "remotetokens": [
+    {
+      "access_token": "12341234-1234-1234-1234-123412341234",
+      "id_remote_account": 10,
+      "token_type": "",
+      "secret": ""
+    }
+  ]
+}

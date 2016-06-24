@@ -29,3 +29,5 @@
 -e git+https://github.com/inveniosoftware/invenio-communities.git#egg=invenio-communities
 -e git+https://github.com/inveniosoftware/invenio-deposit.git#egg=invenio-deposit
 -e git+https://github.com/inveniosoftware/invenio-sipstore.git#egg=invenio-sipstore
+-e git+https://github.com/inveniosoftware/invenio-oauthclient.git#egg=invenio-oauthclient
+-e git+https://github.com/inveniosoftware/invenio-oauth2server.git#egg=invenio-oauth2server

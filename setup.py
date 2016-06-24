@@ -69,6 +69,9 @@ extras_require = {
         'invenio-userprofiles>=1.0.0a4',
         'Flask-Security>=1.7.5',
     ],
+    'oauthclient': [
+        'invenio-oauthclient>=1.0.0a7',
+    ],
     'tests': tests_require,
 }
 
@@ -119,16 +122,20 @@ setup(
         'invenio_celery.tasks': [
             'communities = invenio_migrator.tasks.communities',
             'deposit = invenio_migrator.tasks.deposit',
+            'oauthclient = invenio_migrator.tasks.oauthclient',
             'records = invenio_migrator.tasks.records',
             'users = invenio_migrator.tasks.users',
         ],
         'invenio_migrator.things': [
-            'records = invenio_migrator.legacy.records',
-            'files = invenio_migrator.legacy.bibdocfile',
             'communities = invenio_migrator.legacy.communities',
-            'featured = invenio_migrator.legacy.featured_communities',
-            'users = invenio_migrator.legacy.users',
             'deposit = invenio_migrator.legacy.deposit',
+            'featured = invenio_migrator.legacy.featured_communities',
+            'files = invenio_migrator.legacy.bibdocfile',
+            'records = invenio_migrator.legacy.records',
+            'remoteaccounts = invenio_migrator.legacy.remoteaccounts',
+            'remotetokens = invenio_migrator.legacy.remotetokens',
+            'userexts = invenio_migrator.legacy.userexts',
+            'users = invenio_migrator.legacy.users',
         ]
     },
     extras_require=extras_require,

@@ -45,7 +45,7 @@ python:
   - "3.5"
 
 before_install:
-  - "travis_retry pip install --upgrade pip setuptools py"
+  - "travis_retry pip install --upgrade pip setuptools 'Sphinx==1.4.4' py"
   - "travis_retry pip install twine wheel coveralls requirements-builder"
   - "requirements-builder --level=min setup.py > .travis-lowest-requirements.txt"
   - "requirements-builder --level=pypi setup.py > .travis-release-requirements.txt"
@@ -53,7 +53,6 @@ before_install:
 
 install:
   - "travis_retry pip install -r .travis-${REQUIREMENTS}-requirements.txt"
-  - "travis_retry pip install -e git+https://github.com/inveniosoftware/invenio-deposit.git#egg=invenio-deposit --exists-action i"  # TODO: Remove after pypi release
   - "travis_retry pip install -e .[all]"
 
 script:

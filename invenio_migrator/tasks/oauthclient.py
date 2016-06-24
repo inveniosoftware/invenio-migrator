@@ -1,4 +1,3 @@
-#!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
@@ -23,9 +22,40 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-pydocstyle invenio_migrator tests && \
-isort -rc -c -df **/*.py && \
-check-manifest --ignore ".travis-*" && \
-sphinx-build -qnNW docs docs/_build/html && \
-python setup.py test && \
-sphinx-build -qnNW -b doctest docs docs/_build/doctest
+"""Celery task for records migration."""
+
+from __future__ import absolute_import, print_function
+
+from celery import shared_task
+from .utils import load_common
+from invenio_oauthclient.models import RemoteAccount, RemoteToken, UserIdentity
+
+
+@shared_task()
+def load_remoteaccount(data):
+    """Load the remote accounts from data dump.
+
+    :param data: Dictionary containing remote accounts data.
+    :type data: dict
+    """
+    load_common(RemoteAccount, data)
+
+
+@shared_task()
+def load_remotetoken(data):
+    """Load the remote tokens from data dump.
+
+    :param data: Dictionary containing remote tokens data.
+    :type data: dict
+    """
+    load_common(RemoteToken, data)
+
+
+@shared_task()
+def load_userext(data):
+    """Load the user identities from UserEXT dump.
+
+    :param data: Dictionary containing user identities.
+    :type data: dict
+    """
+    load_common(UserIdentity, data)

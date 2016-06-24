@@ -28,6 +28,15 @@ from __future__ import absolute_import, print_function
 
 from dateutil.parser import parse as iso2dt
 
+from invenio_db import db
+
+
+def load_common(model_cls, data):
+    """Helper function for loading JSON data verbatim into model."""
+    obj = model_cls(**data)
+    db.session.add(obj)
+    db.session.commit()
+
 
 def iso2dt_or_none(iso_dt):
     """Turn ISO-formatted date into datetime (None if 'iso_dt' is empty).

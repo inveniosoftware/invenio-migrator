@@ -118,6 +118,23 @@ def inspectrecords(source, recid, entity=None):
                 click.echo(revision)
 
 
+def loadcommon(source, load_task, *args, **kwargs):
+    """Common helper function for load simple objects.
+
+    Note: Extra `args` and `kwargs` are passed to the `load_task` function.
+
+    :param source: JSON source file with dumps
+    :type source: str (filepath)
+    :param load_task: Shared task which loads the dump.
+    :type load_task: function
+    """
+    click.echo('Loading dump...')
+    data = json.load(source)
+    with click.progressbar(data) as data_bar:
+        for d in data_bar:
+            load_task.delay(d, *args, **kwargs)
+
+
 @dumps.command()
 @click.argument('source', type=click.File('r'), default=sys.stdin)
 @click.argument('logos_dir', type=click.Path(exists=True), default=None)
@@ -125,11 +142,7 @@ def inspectrecords(source, recid, entity=None):
 def loadcommunities(source, logos_dir):
     """Load communities."""
     from invenio_migrator.tasks.communities import load_community
-    click.echo('Loading dump...')
-    data = json.load(source)
-    with click.progressbar(data) as communities:
-        for c in communities:
-            load_community.delay(c, logos_dir)
+    loadcommon(source, load_community, logos_dir)
 
 
 @dumps.command()
@@ -138,11 +151,7 @@ def loadcommunities(source, logos_dir):
 def loadfeatured(source):
     """Load community featurings."""
     from invenio_migrator.tasks.communities import load_featured
-    click.echo('Loading dump...')
-    data = json.load(source)
-    with click.progressbar(data) as featured:
-        for fc in featured:
-            load_featured.delay(fc)
+    loadcommon(source, load_featured)
 
 
 @dumps.command()
@@ -151,11 +160,7 @@ def loadfeatured(source):
 def loadusers(source):
     """Load users."""
     from .tasks.users import load_user
-    click.echo('Loading dump...')
-    data = json.load(source)
-    with click.progressbar(data) as users:
-        for u in users:
-            load_user.delay(u)
+    loadcommon(source, load_user)
 
 
 @dumps.command()
@@ -164,8 +169,31 @@ def loadusers(source):
 def loaddeposit(source):
     """Load deposit."""
     from .tasks.deposit import load_deposit
-    click.echo('Loading dump...')
-    data = json.load(source)
-    with click.progressbar(data) as deposits:
-        for d in deposits:
-            load_deposit.delay(d)
+    loadcommon(source, load_deposit)
+
+
+@dumps.command()
+@click.argument('source', type=click.File('r'), default=sys.stdin)
+@with_appcontext
+def loadremoteaccounts(source):
+    """Load deposit."""
+    from .tasks.oauthclient import load_remoteaccount
+    loadcommon(source, load_remoteaccount)
+
+
+@dumps.command()
+@click.argument('source', type=click.File('r'), default=sys.stdin)
+@with_appcontext
+def loadremotetokens(source):
+    """Load deposit."""
+    from .tasks.oauthclient import load_remotetoken
+    loadcommon(source, load_remotetoken)
+
+
+@dumps.command()
+@click.argument('source', type=click.File('r'), default=sys.stdin)
+@with_appcontext
+def loaduserexts(source):
+    """Load deposit."""
+    from .tasks.oauthclient import load_userext
+    loadcommon(source, load_userext)

@@ -38,6 +38,7 @@ from flask import Flask
 from flask_babelex import Babel
 from flask_celeryext import FlaskCeleryExt
 from flask_cli import FlaskCLI, ScriptInfo
+from flask_oauthlib.client import OAuth as FlaskOAuth
 from invenio_accounts import InvenioAccounts
 from invenio_accounts.models import User
 from invenio_communities import InvenioCommunities
@@ -47,6 +48,7 @@ from invenio_deposit import InvenioDeposit
 from invenio_files_rest import InvenioFilesREST
 from invenio_files_rest.models import Bucket, Location, ObjectVersion
 from invenio_jsonschemas.ext import InvenioJSONSchemas
+from invenio_oauthclient import InvenioOAuthClient
 from invenio_pidstore import InvenioPIDStore
 from invenio_pidstore.fetchers import FetchedPID
 from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
@@ -79,6 +81,7 @@ def app(request):
             'SQLALCHEMY_DATABASE_URI',
             'sqlite:///:memory:'),
         SECURITY_PASSWORD_SALT='TEST',
+        SECRET_KEY='TEST',
     )
     FlaskCLI(app_)
     FlaskCeleryExt(app_)
@@ -93,6 +96,8 @@ def app(request):
     Babel(app_)
     InvenioFilesREST(app_)
     InvenioMigrator(app_)
+    FlaskOAuth(app_)
+    InvenioOAuthClient(app_)
 
     with app_.app_context():
         yield app_
@@ -229,7 +234,7 @@ def users_dump(datadir):
 
 @pytest.fixture()
 def record_db(db):
-    """Load records json."""
+    """Load records JSON."""
     id_ = uuid.uuid4()
     record = Record.create({
         'title': 'Test record',
@@ -259,6 +264,14 @@ def record_pid(db, record_db):
     )
     db.session.commit()
     return pid
+
+
+@pytest.fixture()
+def oauthclient_dump(datadir):
+    """Load oauthclient JSON."""
+    with open(join(datadir, 'oauthclient.json')) as fp:
+        oauth = json.load(fp)
+    return oauth['remoteaccounts'], oauth['remotetokens']
 
 
 @pytest.fixture()

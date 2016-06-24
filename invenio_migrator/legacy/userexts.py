@@ -1,4 +1,3 @@
-#!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
@@ -23,9 +22,27 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-pydocstyle invenio_migrator tests && \
-isort -rc -c -df **/*.py && \
-check-manifest --ignore ".travis-*" && \
-sphinx-build -qnNW docs docs/_build/html && \
-python setup.py test && \
-sphinx-build -qnNW -b doctest docs docs/_build/doctest
+"""Community dump functions."""
+
+from __future__ import absolute_import, print_function
+
+
+def get(*args, **kwargs):
+    """Get UserEXT objects."""
+    try:
+        from invenio.modules.accounts.models import UserEXT
+    except ImportError:
+        from invenio_accounts.models import UserEXT
+    q = UserEXT.query
+    return q.count(), q.all()
+
+
+def dump(u, from_date, with_json=True, latest_only=False, **kwargs):
+    """Dump the UserEXt objects as a list of dictionaries.
+
+    :param u: UserEXT to be dumped.
+    :type u: `invenio_accounts.models.UserEXT [Invenio2.x]`
+    :returns: User serialized to dictionary.
+    :rtype: dict
+    """
+    return dict(id=u.id, method=u.method, id_user=u.id_user)
