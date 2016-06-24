@@ -50,10 +50,8 @@ def import_record(data, source_type=None, latest_only=False):
         pid_fetchers=current_migrator.records_pid_fetchers,
     )
     try:
-        record = current_migrator.records_dumploader_cls.create(recorddump)
+        current_migrator.records_dumploader_cls.create(recorddump)
         db.session.commit()
     except Exception:
         db.session.rollback()
         raise
-
-    return str(record.id)

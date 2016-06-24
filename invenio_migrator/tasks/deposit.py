@@ -45,8 +45,10 @@ def load_deposit(data):
     :param data: Dictionary containing deposition data.
     :type data: dict
     """
+    from invenio_db import db
     deposit, dep_pid = create_record_and_pid(data)
     deposit = create_files_and_sip(deposit, dep_pid)
+    db.session.commit()
 
 
 def create_record_and_pid(data):
@@ -58,7 +60,6 @@ def create_record_and_pid(data):
     :rtype: (`invenio_records.api.Record`,
              `invenio_pidstore.models.PersistentIdentifier`)
     """
-    from invenio_db import db
     from invenio_records.api import Record
     from invenio_pidstore.models import PersistentIdentifier, PIDStatus
 
@@ -72,7 +73,6 @@ def create_record_and_pid(data):
         status=PIDStatus.REGISTERED
     )
     deposit.commit()
-    db.session.commit()
     return deposit, pid
 
 
@@ -162,5 +162,4 @@ def create_files_and_sip(deposit, dep_pid):
                 sipf = SIPFile(sip_id=sip.id, filepath=fp, file_id=fi.id)
                 db.session.add(sipf)
     deposit.commit()
-    db.session.commit()
     return deposit

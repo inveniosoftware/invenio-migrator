@@ -49,6 +49,19 @@ class RecordDumpLoader(object):
     @classmethod
     def create(cls, dump):
         """Create record based on dump."""
+        # If 'record' is not present, just create the PID
+        if not dump.data.get('record'):
+            try:
+                PersistentIdentifier.get(pid_type='recid',
+                                         pid_value=dump.recid)
+            except PIDDoesNotExistError:
+                PersistentIdentifier.create(
+                    'recid', dump.recid,
+                    status=PIDStatus.RESERVED
+                )
+                db.session.commit()
+            return None
+
         dump.prepare_revisions()
         dump.prepare_pids()
         dump.prepare_files()
