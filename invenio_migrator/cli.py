@@ -161,6 +161,19 @@ def loadusers(source):
 @dumps.command()
 @click.argument('source', type=click.File('r'), default=sys.stdin)
 @with_appcontext
+def loadremoteaccount(source):
+    """Load remote accounts."""
+    from .tasks.remoteaccount import load_remoteacount
+    click.echo('Loading dump...')
+    data = json.load(source)
+    with click.progressbar(data) as remoteaccounts:
+        for r in remoteaccounts:
+            load_remoteacount.delay(r)
+
+
+@dumps.command()
+@click.argument('source', type=click.File('r'), default=sys.stdin)
+@with_appcontext
 def loaddeposit(source):
     """Load deposit."""
     from .tasks.deposit import load_deposit

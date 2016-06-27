@@ -54,6 +54,7 @@ extras_require = {
         'dojson>=1.0.0',
         'invenio-db[versioning]>=1.0.0a9',
         'invenio-files-rest>=1.0.0a1',
+        'invenio-oauthclient>=1.0.0a6',
         'invenio-pidstore>=1.0.0a6',
         'invenio-records>=1.0.0a9',
         'invenio-records-files>=1.0.0a1',
@@ -120,6 +121,7 @@ setup(
             'communities = invenio_migrator.tasks.communities',
             'deposit = invenio_migrator.tasks.deposit',
             'records = invenio_migrator.tasks.records',
+            'remoteaccount = invenio_migrator.tasks.remoteaccount',
             'users = invenio_migrator.tasks.users',
         ],
         'invenio_migrator.things': [
@@ -127,6 +129,7 @@ setup(
             'files = invenio_migrator.legacy.bibdocfile',
             'communities = invenio_migrator.legacy.communities',
             'featured = invenio_migrator.legacy.featured_communities',
+            'remoteaccount = invenio_migrator.legacy.remoteaccount',
             'users = invenio_migrator.legacy.users',
             'deposit = invenio_migrator.legacy.deposit',
         ]
