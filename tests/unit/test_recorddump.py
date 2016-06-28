@@ -143,7 +143,9 @@ def test_is_deleted(records_json):
         {'record': [{
             'json': {'collections': ['deleted']},
             'modification_datetime': '2014-10-10T10:10:10Z'
-        }]},
+        }],
+         'collections': []
+        },
         source_type='json'
     )
     d.prepare_revisions()

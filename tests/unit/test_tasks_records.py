@@ -39,6 +39,22 @@ def test_import_record(app, db, dummy_location, record_dump, records_json,
     import_record(records_json[0], source_type='json')
     assert RecordMetadata.query.count() == 1
     pid, record = resolver.resolve('11782')
+    assert record['_collections'] == []
     assert len(record['_files']) == 1
     assert ObjectVersion.get(
         record['_files'][0]['bucket'], record['_files'][0]['key'])
+
+    import_record(records_json[1], source_type='marcxml')
+    assert RecordMetadata.query.count() == 2
+    pid, record = resolver.resolve('10')
+    assert record['_collections'] == [
+        "ALEPH Papers",
+        "Articles & Preprints",
+        "Experimental Physics (EP)",
+        "CERN Divisions",
+        "Atlantis Institute of Fictive Science",
+        "CERN Experiments",
+        "Preprints",
+        "ALEPH",
+    ]
+    assert len(record['_files']) == 2

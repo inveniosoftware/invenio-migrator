@@ -44,6 +44,14 @@ python:
   - "3.4"
   - "3.5"
 
+matrix:
+  include:
+    - python: "2.7"
+      env:
+        - REQUIREMENTS=release
+        - LEGACY=maint-1.2
+      sudo: true
+
 before_install:
   - "travis_retry pip install --upgrade pip setuptools 'Sphinx==1.4.4' py"
   - "travis_retry pip install twine wheel coveralls requirements-builder"
@@ -54,9 +62,10 @@ before_install:
 install:
   - "travis_retry pip install -r .travis-${REQUIREMENTS}-requirements.txt"
   - "travis_retry pip install -e .[all]"
+  - "if [[ ${LEGACY} ]]; then ./tests/legacy/scripts/invenio-legacy-kickstart.sh; fi"
 
 script:
-  - "./run-tests.sh"
+  - "if [[ ${LEGACY} ]]; then py.test tests/legacy; else ./run-tests.sh; fi"
 
 after_success:
   - coveralls

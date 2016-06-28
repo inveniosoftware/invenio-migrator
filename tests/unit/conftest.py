@@ -141,7 +141,7 @@ def dummy_location(db):
 @pytest.fixture()
 def datadir():
     """Get data directory."""
-    return join(dirname(__file__), 'data')
+    return join(dirname(__file__), '..', 'data')
 
 
 @pytest.fixture()

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env bash
 #
 # This file is part of Invenio.
 # Copyright (C) 2016 CERN.
@@ -22,19 +22,23 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-include *.rst
-include *.sh
-include *.txt
-include .dockerignore
-include .editorconfig
-include LICENSE
-include pytest.ini
-recursive-include docs *.bat
-recursive-include docs *.py
-recursive-include docs *.rst
-recursive-include docs Makefile
-recursive-include examples *.py
-recursive-include tests *.jpg
-recursive-include tests *.json
-recursive-include tests *.py
-recursive-include tests *.sh
+export INVENIO_SRCDIR=$(pwd)/invenio
+export INVENIO_ADMIN_EMAIL=info@inveniosoftware.org
+export INVENIO_WEB_DSTDIR=${VIRTUAL_ENV:=/opt/invenio}
+export INVENIO_WEB_HOST=127.0.0.1
+export INVENIO_WEB_USER=travis
+export INVENIO_WEB_SMTP_PORT=0
+export INVENIO_MYSQL_HOST=127.0.0.1
+export INVENIO_MYSQL_DBNAME=invenio1
+export INVENIO_MYSQL_DBUSER=invenio1
+export INVENIO_MYSQL_DBPASS=dbpass123
+
+git clone -b "${LEGACY}" https://github.com/inveniosoftware/invenio.git
+
+./invenio/scripts/provision-mysql.sh
+./invenio/scripts/provision-web.sh
+#FIXME
+mkdir -p "${INVENIO_WEB_DSTDIR}/lib/python/invenio"
+ln -s "${INVENIO_WEB_DSTDIR}/lib/python/invenio" "${VIRTUAL_ENV}/lib/python2.7/site-packages/invenio"
+./invenio/scripts/create-instance.sh
+./invenio/scripts/populate-instance.sh

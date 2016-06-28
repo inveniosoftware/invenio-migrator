@@ -272,6 +272,8 @@ class RecordDump(object):
         else:
             val = data['json']
 
+        val['_collections'] = self.data.get('collections', [])
+
         return (dt, val)
 
     def prepare_revisions(self):

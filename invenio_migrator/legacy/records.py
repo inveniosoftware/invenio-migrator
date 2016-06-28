@@ -73,6 +73,18 @@ def get_record_revisions(recid, from_date):
         'ORDER BY job_date ASC', (recid, from_date), run_on_slave=True)
 
 
+def get_record_collections(recid):
+    """Get all collections the record belong to."""
+    try:
+        from invenio.search_engine import get_all_collections_of_a_record
+    except ImportError:
+        from invenio.legacy.search_engine import \
+            get_all_collections_of_a_record
+
+    return get_all_collections_of_a_record(
+        recid, recreate_cache_if_needed=False)
+
+
 def dump_record_json(marcxml):
     """Dump JSON of record."""
     try:
@@ -80,7 +92,10 @@ def dump_record_json(marcxml):
         d = Record.create(marcxml, 'marc')
         return d.dumps(clean=True)
     except ImportError:
-        return None
+        from invenio.bibfield import create_record
+        d = create_record(marcxml, master_format='marc')
+        return d.dumps()
+
 
 
 def get(query, from_date, **kwargs):
@@ -95,12 +110,17 @@ def get(query, from_date, **kwargs):
     return len(recids), recids
 
 
-def dump(recid, from_date, with_json=True, latest_only=False, **kwargs):
+def dump(recid, from_date, with_json=True, latest_only=False,
+         with_collections=False, **kwargs):
     """Dump MARCXML and JSON representation of a record.
 
     :param recid: Record identifier
     :param from_date: Dump only revisions from this date onwards.
-    :param json_converter: Function to convert the record to JSON
+    :param with_json: If ``True`` use old ``Record.create`` to generate the
+        JSON representation of the record.
+    :param latest_only: Dump only the last revision of the record metadata.
+    :param with_collections: If ``True`` dump the list of collections that the
+        record belongs to.
     :returns: List of versions of the record.
     """
     date = datetime.datetime.strptime(from_date, '%Y-%m-%d %H:%M:%S')
@@ -112,7 +132,13 @@ def dump(recid, from_date, with_json=True, latest_only=False, **kwargs):
         revision_iter = get_record_revisions(recid, from_date)
 
     # Dump revisions
-    record_dump = dict(record=[], files=[], recid=recid)
+    record_dump = dict(
+        record=[],
+        files=[],
+        recid=recid,
+        collections=get_record_collections(recid)
+        if with_collections else None,
+    )
 
     for revision_date, revision_marcxml in revision_iter:
         marcxml = zlib.decompress(revision_marcxml)
