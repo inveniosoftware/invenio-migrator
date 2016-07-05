@@ -1,0 +1,28 @@
+[
+  {
+    "userext": {},
+    "remoteaccount": {
+      "extra_data": {
+        "orcid": "0000-0001-9999-9999"
+      },
+      "user_id": 1,
+      "id": 4,
+      "client_id": "0000-0000-0000-0000"
+    }
+  },
+  {
+    "userext": {
+      "id_user": 2,
+      "method": "orcid",
+      "id": "0000-0002-XXXX-YYYY"
+    },
+    "remoteaccount": {
+      "extra_data": {
+        "orcid": "0000-0002-XXXX-YYYY"
+      },
+      "user_id": 2,
+      "id": 67,
+      "client_id": "0000-0000-0000-0000"
+    }
+  }
+]

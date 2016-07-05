@@ -47,6 +47,7 @@ from invenio_deposit import InvenioDeposit
 from invenio_files_rest import InvenioFilesREST
 from invenio_files_rest.models import Bucket, Location, ObjectVersion
 from invenio_jsonschemas.ext import InvenioJSONSchemas
+from invenio_oauthclient.ext import InvenioOAuthClient
 from invenio_pidstore import InvenioPIDStore
 from invenio_pidstore.fetchers import FetchedPID
 from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
@@ -93,6 +94,7 @@ def app(request):
     Babel(app_)
     InvenioFilesREST(app_)
     InvenioMigrator(app_)
+    InvenioOAuthClient(app_)
 
     with app_.app_context():
         yield app_
@@ -151,6 +153,30 @@ def records_json(datadir):
     with open(join(datadir, 'records.json')) as fp:
         records = json.load(fp)
     return records
+
+
+@pytest.fixture()
+def remoteaccount_json(datadir):
+    """Load remoteaccount json."""
+    with open(join(datadir, 'remoteaccount.json')) as fp:
+        remoteaccounts = json.load(fp)
+    return remoteaccounts
+
+
+@pytest.fixture()
+def remoteaccount_users(db):
+    """Test user for deposit loading."""
+    u1 = User(id=1, email='user@invenio.org',
+              password='change_me', active=True)
+
+    db.session.add(u1)
+    db.session.commit()
+    u2 = User(id=2, email='user2@invenio.org',
+              password='change_me', active=True)
+
+    db.session.add(u2)
+    db.session.commit()
+    return u1, u2
 
 
 @pytest.fixture()
