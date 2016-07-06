@@ -31,12 +31,13 @@ from invenio_accounts.models import User
 from invenio_migrator.tasks.users import load_user
 
 
-def test_communities_load(db, users_dump):
+def test_users_load(db, users_dump):
     """Load the users JSON dump."""
     for data in users_dump:
         load_user.delay(data)
     db.session.commit()
-    assert User.query.count() == 2
-    u1, u2 = User.query.all()
+    assert User.query.count() == 3
+    u1, u2, u3 = User.query.all()
     assert u1.email == 'user1@invenio.org'
     assert u2.email == 'user2@invenio.org'
+    assert u3.password is None

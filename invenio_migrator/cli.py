@@ -176,7 +176,7 @@ def loaddeposit(source):
 @click.argument('source', type=click.File('r'), default=sys.stdin)
 @with_appcontext
 def loadremoteaccounts(source):
-    """Load deposit."""
+    """Load remote accounts."""
     from .tasks.oauthclient import load_remoteaccount
     loadcommon(source, load_remoteaccount)
 
@@ -185,7 +185,7 @@ def loadremoteaccounts(source):
 @click.argument('source', type=click.File('r'), default=sys.stdin)
 @with_appcontext
 def loadremotetokens(source):
-    """Load deposit."""
+    """Load remote tokens."""
     from .tasks.oauthclient import load_remotetoken
     loadcommon(source, load_remotetoken)
 
@@ -194,6 +194,6 @@ def loadremotetokens(source):
 @click.argument('source', type=click.File('r'), default=sys.stdin)
 @with_appcontext
 def loaduserexts(source):
-    """Load deposit."""
+    """Load user identities (legacy UserEXT)."""
     from .tasks.oauthclient import load_userext
     loadcommon(source, load_userext)

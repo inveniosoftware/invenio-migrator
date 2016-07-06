@@ -58,8 +58,10 @@ def load_user(data):
 
     salt = data['password_salt']
     checksum = data['password']
+    if not checksum:
+        new_password = None
     # Test if password hash is in Modular Crypt Format
-    if checksum.startswith('$'):
+    elif checksum.startswith('$'):
         new_password = checksum
     else:
         new_password = str.join('$', ['', u'invenio-aes', salt, checksum])
