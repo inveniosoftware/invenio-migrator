@@ -134,6 +134,7 @@ setup(
             'users = invenio_migrator.tasks.users',
         ],
         'invenio_migrator.things': [
+            'access = invenio_migrator.legacy.access',
             'clients = invenio_migrator.legacy.clients',
             'communities = invenio_migrator.legacy.communities',
             'deposit = invenio_migrator.legacy.deposit',

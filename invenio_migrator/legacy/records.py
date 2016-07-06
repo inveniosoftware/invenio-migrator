@@ -21,7 +21,6 @@
 # In applying this license, CERN does not
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
-
 """Record and BibDocFile dump functions."""
 
 from __future__ import absolute_import, print_function
@@ -30,7 +29,7 @@ import datetime
 import zlib
 
 from .bibdocfile import dump_bibdoc, get_modified_bibdoc_recids
-from .utils import datetime_toutc
+from .utils import datetime_toutc, memoize
 
 
 def _get_modified_recids_invenio12(from_date):
@@ -48,8 +47,42 @@ def _get_modified_recids_invenio2(from_date):
     from invenio.modules.records.models import Record
 
     date = datetime.datetime.strptime(from_date, '%Y-%m-%d %H:%M:%S')
-    return set((x[0] for x in Record.query.filter(
-        Record.modification_date >= date).values(Record.id))), search_pattern
+    return set(
+        (x[0]
+         for x in Record.query.filter(Record.modification_date >= date).values(
+             Record.id))), search_pattern
+
+
+@memoize
+def _get_collection_restrictions(collection):
+    """Get all restrictions for a given collection, users and fireroles."""
+    try:
+        from invenio.dbquery import run_sql
+        from invenio.access_control_firerole import compile_role_definition
+    except ImportError:
+        from invenio.modules.access.firerole import compile_role_definition
+        from invenio.legacy.dbquery import run_sql
+
+    res = run_sql(
+        'SELECT r.firerole_def_src, email '
+        'FROM accROLE as r '
+        'JOIN accROLE_accACTION_accARGUMENT ON r.id=id_accROLE '
+        'JOIN accARGUMENT AS a ON a.id=id_accARGUMENT '
+        'JOIN user_accROLE AS u ON r.id=u.id_accROLE '
+        'JOIN user ON user.id=u.id_user '
+        'WHERE a.keyword="collection" AND '
+        'a.value=%s AND '
+        'id_accACTION=(select id from accACTION where name="viewrestrcoll")',
+        (collection, ), run_on_slave=True
+    )
+    fireroles = set()
+    users = set()
+
+    for f, u in res:
+        fireroles.add(compile_role_definition(f))
+        users.add(u)
+
+    return {'fireroles': list(fireroles), 'users': users}
 
 
 def get_modified_recids(from_date):
@@ -70,19 +103,31 @@ def get_record_revisions(recid, from_date):
     return run_sql(
         'SELECT job_date, marcxml '
         'FROM hstRECORD WHERE id_bibrec = %s AND job_date >= %s '
-        'ORDER BY job_date ASC', (recid, from_date), run_on_slave=True)
+        'ORDER BY job_date ASC', (recid, from_date),
+        run_on_slave=True)
 
 
 def get_record_collections(recid):
     """Get all collections the record belong to."""
     try:
-        from invenio.search_engine import get_all_collections_of_a_record
+        from invenio.search_engine import (
+            get_all_collections_of_a_record,
+            get_restricted_collections_for_recid)
     except ImportError:
-        from invenio.legacy.search_engine import \
-            get_all_collections_of_a_record
+        from invenio.legacy.search_engine import (
+            get_all_collections_of_a_record,
+            get_restricted_collections_for_recid)
 
-    return get_all_collections_of_a_record(
-        recid, recreate_cache_if_needed=False)
+    collections = {
+        'all':
+        get_all_collections_of_a_record(recid, recreate_cache_if_needed=False),
+    }
+    collections['restricted'] = dict(
+        (coll, _get_collection_restrictions(coll))
+        for coll in get_restricted_collections_for_recid(
+                recid, recreate_cache_if_needed=False))
+
+    return collections
 
 
 def dump_record_json(marcxml):
@@ -109,8 +154,12 @@ def get(query, from_date, **kwargs):
     return len(recids), recids
 
 
-def dump(recid, from_date, with_json=False, latest_only=False,
-         with_collections=False, **kwargs):
+def dump(recid,
+         from_date,
+         with_json=False,
+         latest_only=False,
+         with_collections=False,
+         **kwargs):
     """Dump MARCXML and JSON representation of a record.
 
     :param recid: Record identifier
@@ -122,8 +171,6 @@ def dump(recid, from_date, with_json=False, latest_only=False,
         record belongs to.
     :returns: List of versions of the record.
     """
-    date = datetime.datetime.strptime(from_date, '%Y-%m-%d %H:%M:%S')
-
     # Grab latest only
     if latest_only:
         revision_iter = [get_record_revisions(recid, from_date)[-1]]
@@ -136,16 +183,16 @@ def dump(recid, from_date, with_json=False, latest_only=False,
         files=[],
         recid=recid,
         collections=get_record_collections(recid)
-        if with_collections else None,
-    )
+        if with_collections else None, )
 
     for revision_date, revision_marcxml in revision_iter:
         marcxml = zlib.decompress(revision_marcxml)
-        record_dump['record'].append(dict(
-            modification_datetime=datetime_toutc(revision_date).isoformat(),
-            marcxml=marcxml,
-            json=dump_record_json(marcxml) if with_json else None,
-        ))
+        record_dump['record'].append(
+            dict(
+                modification_datetime=datetime_toutc(revision_date)
+                .isoformat(),
+                marcxml=marcxml,
+                json=dump_record_json(marcxml) if with_json else None, ))
 
     record_dump['files'] = dump_bibdoc(recid, from_date)
 
