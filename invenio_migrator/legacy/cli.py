@@ -30,7 +30,12 @@ import json
 
 import click
 
-from .utils import collect_things_entry_points, grouper, init_app_context
+from .utils import (
+    collect_things_entry_points,
+    grouper,
+    init_app_context,
+    set_serializer
+)
 
 
 @click.group()
@@ -76,7 +81,10 @@ def dump(thing, query, from_date, file_prefix, chunk_size, limit, thing_flags):
                 for _id in chunk_ids:
                     try:
                         json.dump(
-                            thing_func.dump(_id, from_date, **kwargs), fp)
+                            thing_func.dump(_id, from_date, **kwargs),
+                            fp,
+                            default=set_serializer
+                        )
                         fp.write(",")
                     except Exception as e:
                         click.secho("Failed dump {0} {1} ({2})".format(

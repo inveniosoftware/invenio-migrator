@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2016 CERN.
+# Copyright (C) 2016, 2017 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -26,6 +26,7 @@
 
 from __future__ import absolute_import, print_function
 
+from functools import wraps
 from itertools import islice
 
 from dateutil.tz import tzlocal, tzutc
@@ -81,3 +82,23 @@ def dt2iso_or_empty(dt):
     :rtype: str
     """
     return '' if (dt is None) else datetime_toutc(dt).isoformat()
+
+
+def set_serializer(obj):
+    """Turn set into list to serialize it to JSON."""
+    if isinstance(obj, set):
+        return list(obj)
+    raise TypeError
+
+
+def memoize(func):
+    """Cache for heavy function calls."""
+    cache = {}
+
+    @wraps(func)
+    def wrap(*args, **kwargs):
+        key = '{0}{1}'.format(args, kwargs)
+        if key not in cache:
+            cache[key] = func(*args, **kwargs)
+        return cache[key]
+    return wrap
