@@ -22,5 +22,17 @@
     "settings": {"login_method": "Local"},
     "nickname": "",
     "last_login": "2016-02-05T11:18:33"
+  },
+  {
+    "id": "3",
+    "email": "user3@invenio.org",
+    "password": "",
+    "password_salt": "",
+    "note": "1",
+    "given_names": "",
+    "family_name": "",
+    "settings": {"login_method": "Local"},
+    "nickname": "",
+    "last_login": "2016-02-05T11:18:33"
   }
 ]
