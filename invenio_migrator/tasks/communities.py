@@ -30,8 +30,6 @@ from os.path import isfile, join
 
 from celery import shared_task
 from dateutil.parser import parse as iso2dt
-from invenio_communities.models import Community, FeaturedCommunity
-from invenio_communities.utils import save_and_validate_logo
 from invenio_db import db
 
 from .utils import iso2dt_or_none, logo_ext_wash
@@ -46,6 +44,8 @@ def load_community(data, logos_dir):
     :param logos_dir: Path to a local directory with community logos.
     :type logos_dir: str
     """
+    from invenio_communities.models import Community
+    from invenio_communities.utils import save_and_validate_logo
     logo_ext_washed = logo_ext_wash(data['logo_ext'])
     c = Community(
         id=data['id'],
@@ -76,6 +76,7 @@ def load_featured(data):
     :param data: Dictionary containing community featuring data.
     :type data: dict
     """
+    from invenio_communities.models import FeaturedCommunity
     obj = FeaturedCommunity(id=data['id'],
                             id_community=data['id_community'],
                             start_date=iso2dt(data['start_date']))

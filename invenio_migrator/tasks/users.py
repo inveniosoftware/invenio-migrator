@@ -32,9 +32,7 @@ from datetime import datetime
 import arrow
 from celery import shared_task
 from flask import current_app
-from invenio_accounts.models import User
 from invenio_db import db
-from invenio_userprofiles.api import UserProfile
 
 
 @shared_task()
@@ -44,6 +42,8 @@ def load_user(data):
     :param data: Dictionary containing user data.
     :type data: dict
     """
+    from invenio_accounts.models import User
+    from invenio_userprofiles.api import UserProfile
     email = data['email']
     if User.query.filter_by(email=data['email']).count() > 0:
         email = 'DUPLICATE_{}'.format(data['email'])
