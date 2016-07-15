@@ -44,7 +44,7 @@ tests_require = [
 
 extras_require = {
     'docs': [
-        'Sphinx>=1.4.2',
+        'Sphinx>=1.4.2,<1.4.5',
     ],
     'loader': [
         'Flask-CLI>=0.2.1',
@@ -71,6 +71,9 @@ extras_require = {
     ],
     'oauthclient': [
         'invenio-oauthclient>=1.0.0a7',
+    ],
+    'oauth2server': [
+        'invenio-oauth2server>=1.0.0a7',
     ],
     'tests': tests_require,
 }
@@ -123,10 +126,12 @@ setup(
             'communities = invenio_migrator.tasks.communities',
             'deposit = invenio_migrator.tasks.deposit',
             'oauthclient = invenio_migrator.tasks.oauthclient',
+            'oauth2server = invenio_migrator.tasks.oauth2server',
             'records = invenio_migrator.tasks.records',
             'users = invenio_migrator.tasks.users',
         ],
         'invenio_migrator.things': [
+            'clients = invenio_migrator.legacy.clients',
             'communities = invenio_migrator.legacy.communities',
             'deposit = invenio_migrator.legacy.deposit',
             'featured = invenio_migrator.legacy.featured_communities',
@@ -134,6 +139,7 @@ setup(
             'records = invenio_migrator.legacy.records',
             'remoteaccounts = invenio_migrator.legacy.remoteaccounts',
             'remotetokens = invenio_migrator.legacy.remotetokens',
+            'tokens = invenio_migrator.legacy.tokens',
             'userexts = invenio_migrator.legacy.userexts',
             'users = invenio_migrator.legacy.users',
         ]

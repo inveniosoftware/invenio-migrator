@@ -73,7 +73,6 @@ def loadrecords(sources, source_type):
 @with_appcontext
 def inspectrecords(sources, recid, entity=None):
     """Inspect records in a migration dump."""
-
     for idx, source in enumerate(sources, 1):
         click.echo('Loading dump {0} of {1} ({2})'.format(idx, len(sources),
                                                           source.name))
@@ -106,9 +105,8 @@ def inspectrecords(sources, recid, entity=None):
             if entity == 'json':
                 click.secho('Records (JSON)', fg='green')
                 for revision in record['record']:
-                    click.secho(
-                        'Revision {0}'.format(revision['modification_datetime']),
-                        fg='yellow')
+                    click.secho('Revision {0}'.format(
+                        revision['modification_datetime']), fg='yellow')
                     click.echo(json.dumps(revision['json'], indent=2))
 
             if entity == 'marcxml':
@@ -202,3 +200,21 @@ def loaduserexts(sources):
     """Load user identities (legacy UserEXT)."""
     from .tasks.oauthclient import load_userext
     loadcommon(sources, load_userext)
+
+
+@dumps.command()
+@click.argument('sources', type=click.File('r'), nargs=-1)
+@with_appcontext
+def loadtokens(sources):
+    """Load server tokens."""
+    from .tasks.oauth2server import load_token
+    loadcommon(sources, load_token)
+
+
+@dumps.command()
+@click.argument('sources', type=click.File('r'), nargs=-1)
+@with_appcontext
+def loadclients(sources):
+    """Load server clients."""
+    from .tasks.oauth2server import load_client
+    loadcommon(sources, load_client)
