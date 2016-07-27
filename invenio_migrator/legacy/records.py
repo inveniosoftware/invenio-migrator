@@ -97,7 +97,6 @@ def dump_record_json(marcxml):
         return d.dumps()
 
 
-
 def get(query, from_date, **kwargs):
     """Get recids matching query and with changes."""
     recids, search_pattern = get_modified_recids(from_date)
@@ -110,7 +109,7 @@ def get(query, from_date, **kwargs):
     return len(recids), recids
 
 
-def dump(recid, from_date, with_json=True, latest_only=False,
+def dump(recid, from_date, with_json=False, latest_only=False,
          with_collections=False, **kwargs):
     """Dump MARCXML and JSON representation of a record.
 

@@ -90,5 +90,6 @@ def test_cli():
     runner = CliRunner()
 
     with runner.isolated_filesystem():
-        result = runner.invoke(dump_cli, ['records', '-q', 'Ellis'])
+        result = runner.invoke(
+            dump_cli, ['records', '-q', 'Ellis', '--with-json'])
         assert result.exit_code == 0

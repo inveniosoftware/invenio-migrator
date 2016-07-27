@@ -39,20 +39,23 @@ def cli():
     pass
 
 
-@cli.command()
+@cli.command(context_settings=dict(
+    ignore_unknown_options=True,
+))
 @click.argument('thing')
 @click.option('-q', '--query', default='')
 @click.option('-f', '--from-date', default='1970-01-01 00:00:00')
 @click.option('--file-prefix', default=None)
 @click.option('--chunk-size', default=1000)
 @click.option('--limit', type=int, default=0)
-@click.option('-a', '--argument', multiple=True)
-def dump(thing, query, from_date, file_prefix, chunk_size, limit, argument):
+@click.argument('thing_flags', nargs=-1, type=click.UNPROCESSED)
+def dump(thing, query, from_date, file_prefix, chunk_size, limit, thing_flags):
     """Dump data from Invenio legacy."""
     init_app_context()
 
     file_prefix = file_prefix if file_prefix else '{0}_dump'.format(thing)
-    kwargs = dict(arg.split('=') for arg in argument)
+
+    kwargs = dict((f.strip('-').replace('-', '_'), True) for f in thing_flags)
 
     try:
         thing_func = collect_things_entry_points()[thing]
