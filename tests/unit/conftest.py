@@ -275,6 +275,14 @@ def oauthclient_dump(datadir):
 
 
 @pytest.fixture()
+def oauth2server_dump(datadir):
+    """Load oauth2server JSON."""
+    with open(join(datadir, 'oauth2server.json')) as fp:
+        oauth = json.load(fp)
+    return oauth['clients'], oauth['tokens']
+
+
+@pytest.fixture()
 def record_file(db, dummy_location):
     """Create record pid."""
     data = b'testfile'

@@ -27,7 +27,6 @@
 from __future__ import absolute_import, print_function
 
 from dateutil.parser import parse as iso2dt
-
 from invenio_db import db
 
 

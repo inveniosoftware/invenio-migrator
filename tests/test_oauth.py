@@ -22,41 +22,29 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-"""Celery task for records migration."""
+"""Module tests."""
 
 from __future__ import absolute_import, print_function
 
-from celery import shared_task
-from invenio_oauthclient.models import RemoteAccount, RemoteToken, UserIdentity
-
-from .utils import load_common
-
-
-@shared_task()
-def load_remoteaccount(data):
-    """Load the remote accounts from data dump.
-
-    :param data: Dictionary containing remote accounts data.
-    :type data: dict
-    """
-    load_common(RemoteAccount, data)
+from invenio_migrator.tasks.oauth2server import load_client, load_token
+from invenio_migrator.tasks.oauthclient import load_remoteaccount, \
+    load_remotetoken
 
 
-@shared_task()
-def load_remotetoken(data):
-    """Load the remote tokens from data dump.
+def test_oauthclient_load(dummy_location, oauthclient_dump, deposit_user, app):
+    """Test the deposit loading function."""
+    remoteaccounts, remotetokens = oauthclient_dump
+    for ra in remoteaccounts:
+        load_remoteaccount(ra)
+    for rt in remotetokens:
+        load_remotetoken(rt)
 
-    :param data: Dictionary containing remote tokens data.
-    :type data: dict
-    """
-    load_common(RemoteToken, data)
 
-
-@shared_task()
-def load_userext(data):
-    """Load the user identities from UserEXT dump.
-
-    :param data: Dictionary containing user identities.
-    :type data: dict
-    """
-    load_common(UserIdentity, data)
+def test_oauth2server_load(dummy_location, oauth2server_dump, deposit_user,
+                           app):
+    """Test the deposit loading function."""
+    clients, tokens = oauth2server_dump
+    for client in clients:
+        load_client(client)
+    for token in tokens:
+        load_token(token)

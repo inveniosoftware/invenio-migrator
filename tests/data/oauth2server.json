@@ -1,0 +1,30 @@
+{
+  "clients": [
+    {
+      "website": "https://foo.bar",
+      "is_confidential": false,
+      "user_id": 1,
+      "description": "Some description",
+      "is_internal": true,
+      "_default_scopes": "webhooks:event",
+      "client_id": "1111111111111111111111111111111111111111",
+      "_redirect_uris": null,
+      "client_secret": "222222222222222222222222222222222222222222222222222222222222",
+      "name": "github-webhook"
+    }
+  ],
+  "tokens": [
+    {
+      "is_internal": true,
+      "user_id": 1,
+      "access_token": "999999999999999999999999999999999999999999999999999999999999",
+      "expires": "2016-04-05T18:34:10+00:00",
+      "token_type": "bearer",
+      "is_personal": true,
+      "client_id": "1111111111111111111111111111111111111111",
+      "_scopes": "webhooks:event",
+      "id": 10,
+      "refresh_token": null
+    }
+  ]
+}

@@ -27,8 +27,9 @@
 from __future__ import absolute_import, print_function
 
 from celery import shared_task
-from .utils import load_common, iso2dt_or_none
 from invenio_oauth2server.models import Client, Token
+
+from .utils import iso2dt_or_none, load_common
 
 
 @shared_task()
