@@ -27,7 +27,6 @@
 from __future__ import absolute_import, print_function
 
 import json
-import sys
 
 import click
 from celery import chain
@@ -118,7 +117,8 @@ def inspectrecords(sources, recid, entity=None):
                     click.echo(revision)
 
 
-def loadcommon(sources, load_task, *args, **kwargs):
+def loadcommon(sources, load_task, asynchronous=True, task_args=None,
+               task_kwargs=None):
     """Common helper function for load simple objects.
 
     Note: Extra `args` and `kwargs` are passed to the `load_task` function.
@@ -127,7 +127,17 @@ def loadcommon(sources, load_task, *args, **kwargs):
     :type sources: list of str (filepaths)
     :param load_task: Shared task which loads the dump.
     :type load_task: function
+    :param asynchronous: Flag for serial or asynchronous execution of the task.
+    :type asynchronous: bool
+    :param task_args: positional arguments passed to the task (default: None).
+    :type task_args: tuple or None
+    :param task_kwargs: named arguments passed to the task (default: None).
+    :type task_kwargs: dict or None
     """
+
+    # resolve the defaults for task_args and task_kwargs
+    task_args = tuple() if task_args is None else task_args
+    task_kwargs = dict() if task_kwargs is None else task_kwargs
     click.echo('Loading dumps started.')
     for idx, source in enumerate(sources, 1):
         click.echo('Loading dump {0} of {1} ({2})'.format(idx, len(sources),
@@ -135,7 +145,10 @@ def loadcommon(sources, load_task, *args, **kwargs):
         data = json.load(source)
         with click.progressbar(data) as data_bar:
             for d in data_bar:
-                load_task.delay(d, *args, **kwargs)
+                if asynchronous:
+                    load_task.s(d, *task_args, **task_kwargs).apply_async()
+                else:
+                    load_task.s(d, *task_args, **task_kwargs).apply(throw=True)
 
 
 @dumps.command()
@@ -145,11 +158,11 @@ def loadcommon(sources, load_task, *args, **kwargs):
 def loadcommunities(sources, logos_dir):
     """Load communities."""
     from invenio_migrator.tasks.communities import load_community
-    loadcommon(sources, load_community, logos_dir)
+    loadcommon(sources, load_community, task_args=(logos_dir, ))
 
 
 @dumps.command()
-@click.argument('sources', type=click.File('r'), default=sys.stdin)
+@click.argument('sources', type=click.File('r'), nargs=-1)
 @with_appcontext
 def loadfeatured(sources):
     """Load community featurings."""
@@ -163,7 +176,9 @@ def loadfeatured(sources):
 def loadusers(sources):
     """Load users."""
     from .tasks.users import load_user
-    loadcommon(sources, load_user)
+    # Cannot be executed asynchronously due to duplicate emails and usernames
+    # which can create a racing condition.
+    loadcommon(sources, load_user, asynchronous=False)
 
 
 @dumps.command()

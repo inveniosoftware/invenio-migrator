@@ -26,7 +26,6 @@
 
 from __future__ import absolute_import, print_function
 
-import uuid
 from datetime import datetime
 
 import arrow
@@ -34,19 +33,29 @@ from celery import shared_task
 from flask import current_app
 from invenio_db import db
 
+from .errors import UserEmailExistsError, UserUsernameExistsError
+
 
 @shared_task()
 def load_user(data):
     """Load user from data dump.
+
+    NOTE: This task takes into account the possible duplication of emails and
+    usernames, hence it should be called synchronously.
+    In such case of collision it will raise UserEmailExistsError or
+    UserUsernameExistsError, if email or username are already existing in
+    the database. Caller of this task should take care to to resolve those
+    collisions beforehand or after catching an exception.
 
     :param data: Dictionary containing user data.
     :type data: dict
     """
     from invenio_accounts.models import User
     from invenio_userprofiles.api import UserProfile
-    email = data['email']
-    if User.query.filter_by(email=data['email']).count() > 0:
-        email = 'DUPLICATE_{}'.format(data['email'])
+    email = data['email'].strip()
+    if User.query.filter_by(email=email).count() > 0:
+        raise UserEmailExistsError(
+            "User email '{email}' already exists.".format(email=email))
 
     last_login = None
     if data['last_login']:
@@ -77,25 +86,34 @@ def load_user(data):
         db.session.add(obj)
 
     nickname = data['nickname'].strip()
-    if nickname:
+    overwritten_username = ('username' in data and 'displayname' in data)
+    # NOTE: 'username' and 'displayname' will exist in data dump only
+    # if it was inserted there after dumping. It normally should not come from
+    # Invenio 1.x or 2.x data dumper script. In such case, those values will
+    # have precedence over the 'nickname' field.
+    if nickname or overwritten_username:
         full_name = (data.get('given_names', '') + u' ' +
                      data.get('family_name', '')).strip()
 
-        if UserProfile.query.filter(
-                UserProfile._username == nickname.lower()).count() > 0:
-            nickname = 'DUPLICATE_{0}_{1}'.format(str(uuid.uuid4()), nickname)
-
         p = UserProfile(user=obj)
         p.full_name = full_name or ''
-        try:
-            p.username = nickname
-        except ValueError:
-            current_app.logger.warn(
-                u'Invalid username {0} for user_id {1}'.format(
-                    nickname, data['id']))
-            p._username = nickname.lower()
-            p._displayname = nickname
+        if overwritten_username:
+            p._username = data['username'].lower()
+            p._displayname = data['displayname']
+        elif nickname:
+            if UserProfile.query.filter(
+                    UserProfile._username == nickname.lower()).count() > 0:
+                raise UserUsernameExistsError(
+                    "Username '{username}' already exists.".format(
+                        username=nickname))
+            try:
+                p.username = nickname
+            except ValueError:
+                current_app.logger.warn(
+                    u'Invalid username {0} for user_id {1}'.format(
+                        nickname, data['id']))
+                p._username = nickname.lower()
+                p._displayname = nickname
 
         db.session.add(p)
-
     db.session.commit()

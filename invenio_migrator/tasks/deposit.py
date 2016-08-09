@@ -29,6 +29,7 @@ from __future__ import absolute_import, print_function
 from celery import shared_task
 from celery.utils.log import get_task_logger
 
+from .utils import empty_str_if_none
 from .errors import DepositMultipleRecids, DepositRecidDoesNotExist, \
     DepositSIPUserDoesNotExist
 
@@ -126,8 +127,10 @@ def create_files_and_sip(deposit, dep_pid):
         user_id = None
         if sip['agents']:
             agent = dict(
-                ip_address=sip['agents'][0].get('ip_address', ""),
-                email=sip['agents'][0].get('email_address', ""),
+                ip_address=empty_str_if_none(
+                    sip['agents'][0].get('ip_address', "")),
+                email=empty_str_if_none(
+                    sip['agents'][0].get('email_address', "")),
             )
             user_id = sip['agents'][0]['user_id']
         content = sip['package']

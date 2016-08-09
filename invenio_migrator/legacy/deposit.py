@@ -51,10 +51,54 @@ def default_serializer(o):
             return fun(o)
 
 
+def _get_depositions(user=None, type=None):
+    """Get list of depositions (as iterator).
+
+    This is redefined Deposition.get_depositions classmethod without order-by
+    for better performance.
+    """
+    from invenio.modules.workflows.models import BibWorkflowObject, Workflow
+    from invenio.modules.deposit.models import InvalidDepositionType
+    from flask import current_app
+    from invenio.ext.sqlalchemy import db
+    from invenio.modules.deposit.models import Deposition
+    params = [
+        Workflow.module_name == 'webdeposit',
+    ]
+
+    if user:
+        params.append(BibWorkflowObject.id_user == user.get_id())
+    else:
+        params.append(BibWorkflowObject.id_user != 0)
+
+    if type:
+        params.append(Workflow.name == type.get_identifier())
+
+    objects = BibWorkflowObject.query.join("workflow").options(
+        db.contains_eager('workflow')).filter(*params)
+
+    def _create_obj(o):
+        try:
+            obj = Deposition(o)
+        except InvalidDepositionType as err:
+            current_app.logger.exception(err)
+            return None
+        if type is None or obj.type == type:
+            return obj
+        return None
+
+    def mapper_filter(objs):
+        for o in objs:
+            o = _create_obj(o)
+            if o is not None:
+                yield o
+
+    return mapper_filter(objects)
+
+
 def get(query, from_date, limit=0, **kwargs):
     """Get deposits."""
-    from invenio.modules.deposit.models import Deposition
-    dep_generator = Deposition.get_depositions()
+    dep_generator = _get_depositions()
     total_depids = 1  # Count of depositions is hard to determine
 
     # If limit provided, serve only first n=limit items

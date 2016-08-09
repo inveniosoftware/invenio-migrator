@@ -70,3 +70,8 @@ def logo_ext_wash(logo_ext):
         return logo_ext[1:]
     else:
         return logo_ext
+
+
+def empty_str_if_none(value):
+    """Convert None to empty strings."""
+    return "" if value is None else value

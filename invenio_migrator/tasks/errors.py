@@ -84,3 +84,11 @@ class DepositSIPUserDoesNotExist(DepositError):
         """String representation of the error."""
         return super(DepositRecidDoesNotExist, self).__str__() + \
             ", user_id: {user_id}".format(user_id=self.user_id)
+
+
+class UserEmailExistsError(Exception):
+    """User email already exists in the database."""
+
+
+class UserUsernameExistsError(Exception):
+    """User username already exists in the database."""
