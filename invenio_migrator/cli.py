@@ -41,26 +41,53 @@ def dumps():
     """Migration commands."""
 
 
+def _loadrecord(record_dump, source_type, eager=False):
+    """Load a single record into the database.
+
+    :param record_dump: Record dump.
+    :type record_dump: dict
+    :param source_type: 'json' or 'marcxml'
+    :param eager: If True execute the task synchronously.
+    """
+    if eager:
+        import_record.s(record_dump, source_type=source_type).apply(throw=True)
+    elif current_migrator.records_post_task:
+        chain(
+            import_record.s(record_dump, source_type=source_type),
+            current_migrator.records_post_task.s()
+        )()
+    else:
+        import_record.delay(record_dump, source_type=source_type)
+
+
 @dumps.command()
 @click.argument('sources', type=click.File('r'), nargs=-1)
 @click.option('--source-type', '-t',  type=click.Choice(['json', 'marcxml']),
               default='marcxml', help='Whether to use JSON or MARCXML.')
+@click.option('--recid', '-r',
+              help='Record ID to load (NOTE: will load only one record!).',
+              default=None)
 @with_appcontext
-def loadrecords(sources, source_type):
+def loadrecords(sources, source_type, recid):
     """Load records migration dump."""
-    for idx, source in enumerate(sources, 1):
-        click.echo('Loading dump {0} of {1} ({2})'.format(idx, len(sources),
-                                                          source.name))
-        data = json.load(source)
-        with click.progressbar(data) as records:
+    # Load all record dumps up-front and find the specific JSON
+    if recid:
+        for source in sources:
+            records = json.load(source)
             for item in records:
-                if current_migrator.records_post_task:
-                    chain(
-                        import_record.s(item, source_type=source_type),
-                        current_migrator.records_post_task.s()
-                    )()
-                else:
-                    import_record.delay(item, source_type=source_type)
+                if str(item['recid']) == str(recid):
+                    _loadrecord(item, source_type, eager=True)
+                    click.echo("Record '{recid}' loaded.".format(recid=recid))
+                    return
+        click.echo("Record '{recid}' not found.".format(recid=recid))
+    else:
+        for idx, source in enumerate(sources, 1):
+            click.echo('Loading dump {0} of {1} ({2})'.format(idx, len(sources),
+                                                              source.name))
+            data = json.load(source)
+            with click.progressbar(data) as records:
+                for item in records:
+                    _loadrecord(item, source_type)
 
 
 @dumps.command()
@@ -134,7 +161,6 @@ def loadcommon(sources, load_task, asynchronous=True, task_args=None,
     :param task_kwargs: named arguments passed to the task (default: None).
     :type task_kwargs: dict or None
     """
-
     # resolve the defaults for task_args and task_kwargs
     task_args = tuple() if task_args is None else task_args
     task_kwargs = dict() if task_kwargs is None else task_kwargs
