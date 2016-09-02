@@ -28,14 +28,14 @@ from __future__ import absolute_import, print_function
 
 import pytest
 from invenio_pidstore.resolver import Resolver
+from invenio_pidstore.models import PersistentIdentifier, PIDStatus
 from invenio_records.api import Record
 from invenio_records.models import RecordMetadata
 from invenio_records_files.api import Record as RecordFiles
 from invenio_sipstore.models import SIP, RecordSIP, SIPFile
 
 from invenio_migrator.tasks.deposit import load_deposit
-from invenio_migrator.tasks.errors import DepositMultipleRecids, \
-    DepositRecidDoesNotExist
+from invenio_migrator.tasks.errors import DepositMultipleRecids
 
 
 def test_deposit_load(dummy_location, deposit_user, deposit_record_pid):
@@ -47,7 +47,7 @@ def test_deposit_load(dummy_location, deposit_user, deposit_record_pid):
     dep2 = dict(sips=[dict(metadata=dict(recid='50'),
                            agents=[dict(user_id=1), ],
                            package='Content2'), ],
-                _p=dict(id='2'))
+                _p=dict(id='2', submitted=True))
     dep3 = dict(sips=[dict(metadata=dict(recid='10'),
                            agents=[dict(user_id=5), ],
                            package='Content3'), ],
@@ -60,12 +60,20 @@ def test_deposit_load(dummy_location, deposit_user, deposit_record_pid):
                            package='Content5'), ],
                 _p=dict(id='4'))
     load_deposit(dep1)
-    pytest.raises(DepositRecidDoesNotExist, load_deposit, dep2)
     pytest.raises(DepositMultipleRecids, load_deposit, dep4)
 
     # Should set user to null because user_id does not exist
     load_deposit(dep3)
     assert SIP.query.filter_by(content="Content3").one().user_id is None
+
+    # Should create reserved recid and leave deposit unsubmitted
+    load_deposit(dep2)
+    assert PersistentIdentifier.query.filter_by(
+        pid_type='recid', pid_value='50').one().status == PIDStatus.RESERVED
+
+    pid, dep = Resolver(pid_type='depid', object_type='rec',
+                        getter=Record.get_record).resolve('2')
+    assert not dep['_p']['submitted']
 
 
 def test_deposit_load_task(dummy_location, deposit_dump, deposit_user,

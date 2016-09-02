@@ -79,7 +79,7 @@ def create_record_and_pid(data):
 def create_files_and_sip(deposit, dep_pid):
     """Create deposit Bucket, Files and SIPs."""
     from invenio_pidstore.errors import PIDDoesNotExistError
-    from invenio_pidstore.models import PersistentIdentifier
+    from invenio_pidstore.models import PersistentIdentifier, PIDStatus
     from invenio_sipstore.errors import SIPUserDoesNotExist
     from invenio_sipstore.models import SIP, RecordSIP, SIPFile
     from invenio_files_rest.models import Bucket, FileInstance, ObjectVersion
@@ -162,7 +162,23 @@ def create_files_and_sip(deposit, dep_pid):
                 logger.exception('Record {recid} referred in '
                                  'Deposit {depid} does not exists.'.format(
                                      recid=recid, depid=dep_pid.pid_value))
-                raise DepositRecidDoesNotExist(dep_pid.pid_value, recid)
+                if deposit['_p']['submitted'] == True:
+                    logger.exception('Pair {recid}/{depid} was submitted,'
+                                     ' setting to unpublished.'.format(
+                                         recid=recid, depid=dep_pid.pid_value))
+                    deposit['_p']['submitted'] = False
+                else:
+                    logger.exception('Pair {recid}/{depid} was not submitted.'.
+                        format(recid=recid, depid=dep_pid.pid_value))
+
+                # Reserve recid
+                pid = PersistentIdentifier.create(
+                    pid_type='recid',
+                    pid_value=str(recid),
+                    object_type='rec',
+                    object_uuid=str(deposit.id),
+                    status=PIDStatus.RESERVED
+                )
         if idx == 0:
             for fp, fi in dep_file_instances:
                 sipf = SIPFile(sip_id=sip.id, filepath=fp, file_id=fi.id)
