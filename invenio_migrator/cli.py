@@ -47,7 +47,7 @@ def _loadrecord(record_dump, source_type, eager=False):
     :param record_dump: Record dump.
     :type record_dump: dict
     :param source_type: 'json' or 'marcxml'
-    :param eager: If True execute the task synchronously.
+    :param eager: If ``True`` execute the task synchronously.
     """
     if eager:
         import_record.s(record_dump, source_type=source_type).apply(throw=True)
@@ -71,7 +71,7 @@ def _loadrecord(record_dump, source_type, eager=False):
 def loadrecords(sources, source_type, recid):
     """Load records migration dump."""
     # Load all record dumps up-front and find the specific JSON
-    if recid:
+    if recid is not None:
         for source in sources:
             records = json.load(source)
             for item in records:
@@ -144,11 +144,24 @@ def inspectrecords(sources, recid, entity=None):
                     click.echo(revision)
 
 
-def loadcommon(sources, load_task, asynchronous=True, task_args=None,
-               task_kwargs=None):
+def loadcommon(sources, load_task, asynchronous=True, predicate=None,
+               task_args=None, task_kwargs=None):
     """Common helper function for load simple objects.
 
-    Note: Extra `args` and `kwargs` are passed to the `load_task` function.
+    .. note::
+
+      Keyword arguments ``task_args`` and ``task_kwargs`` are passed to the
+      ``load_task`` function as ``*task_args`` and ``**task_kwargs``.
+
+    .. note::
+
+      The `predicate` argument is used as a predicate function to load only
+      a *single* item from across all dumps (this CLI function will return right
+      after loading the item). This is primarily used for debugging of
+      the *dirty* data within the dump. The `predicate` should be a function
+      with a signature ``f(dict) -> bool``, i.e. taking a single parameter
+      (an item from the dump, usually a dic) and return ``True`` if the item
+      should be loaded. See the ``loaddeposit`` for a concrete example.
 
     :param sources: JSON source files with dumps
     :type sources: list of str (filepaths)
@@ -156,25 +169,37 @@ def loadcommon(sources, load_task, asynchronous=True, task_args=None,
     :type load_task: function
     :param asynchronous: Flag for serial or asynchronous execution of the task.
     :type asynchronous: bool
-    :param task_args: positional arguments passed to the task (default: None).
-    :type task_args: tuple or None
-    :param task_kwargs: named arguments passed to the task (default: None).
-    :type task_kwargs: dict or None
+    :param predicate: Predicate for selecting only a single item from the dump.
+    :type predicate: function
+    :param task_args: positional arguments passed to the task.
+    :type task_args: tuple
+    :param task_kwargs: named arguments passed to the task.
+    :type task_kwargs: dict
     """
     # resolve the defaults for task_args and task_kwargs
     task_args = tuple() if task_args is None else task_args
     task_kwargs = dict() if task_kwargs is None else task_kwargs
     click.echo('Loading dumps started.')
     for idx, source in enumerate(sources, 1):
-        click.echo('Loading dump {0} of {1} ({2})'.format(idx, len(sources),
-                                                          source.name))
+        click.echo('Opening dump file {0} of {1} ({2})'.format(
+            idx, len(sources), source.name))
         data = json.load(source)
         with click.progressbar(data) as data_bar:
             for d in data_bar:
-                if asynchronous:
-                    load_task.s(d, *task_args, **task_kwargs).apply_async()
+                # Load a single item from the dump
+                if predicate is not None:
+                    if predicate(d):
+                        load_task.s(d, *task_args, **task_kwargs).apply(
+                            throw=True)
+                        click.echo("Loaded a single record.")
+                        return
+                # Load dumps normally
                 else:
-                    load_task.s(d, *task_args, **task_kwargs).apply(throw=True)
+                    if asynchronous:
+                        load_task.s(d, *task_args, **task_kwargs).apply_async()
+                    else:
+                        load_task.s(d, *task_args, **task_kwargs).apply(
+                            throw=True)
 
 
 @dumps.command()
@@ -209,11 +234,23 @@ def loadusers(sources):
 
 @dumps.command()
 @click.argument('sources', type=click.File('r'), nargs=-1)
+@click.option('--depid', '-d', type=int,
+              help='Deposit ID to load (Note: will load only one deposit!).',
+              default=None)
 @with_appcontext
-def loaddeposit(sources):
-    """Load deposit."""
+def loaddeposit(sources, depid):
+    """Load deposit.
+
+    Usage:
+        invenio dumps loaddeposit ~/data/deposit_dump_*.json
+        invenio dumps loaddeposit -d 12345 ~/data/deposit_dump_*.json
+    """
     from .tasks.deposit import load_deposit
-    loadcommon(sources, load_deposit)
+    if depid is not None:
+        pred = lambda dep: int(dep["_p"]["id"]) == depid
+        loadcommon(sources, load_deposit, predicate=pred, asynchronous=False)
+    else:
+        loadcommon(sources, load_deposit)
 
 
 @dumps.command()
