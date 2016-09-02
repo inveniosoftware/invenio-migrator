@@ -35,34 +35,37 @@ from invenio_sipstore.models import SIP, RecordSIP, SIPFile
 
 from invenio_migrator.tasks.deposit import load_deposit
 from invenio_migrator.tasks.errors import DepositMultipleRecids, \
-    DepositRecidDoesNotExist, DepositSIPUserDoesNotExist
+    DepositRecidDoesNotExist
 
 
 def test_deposit_load(dummy_location, deposit_user, deposit_record_pid):
     """Test the deposit loading function."""
     dep1 = dict(sips=[dict(metadata=dict(recid='10'),
                            agents=[dict(user_id=1), ],
-                           package='Foobar'), ],
+                           package='Content1'), ],
                 _p=dict(id='1'))
     dep2 = dict(sips=[dict(metadata=dict(recid='50'),
                            agents=[dict(user_id=1), ],
-                           package='Foobar'), ],
+                           package='Content2'), ],
                 _p=dict(id='2'))
     dep3 = dict(sips=[dict(metadata=dict(recid='10'),
                            agents=[dict(user_id=5), ],
-                           package='Foobar'), ],
+                           package='Content3'), ],
                 _p=dict(id='3'))
     dep4 = dict(sips=[dict(metadata=dict(recid='10'),
                            agents=[dict(user_id=5), ],
-                           package='Foobar'),
+                           package='Content4'),
                       dict(metadata=dict(recid='11'),
                            agents=[dict(user_id=5), ],
-                           package='Foobar'), ],
+                           package='Content5'), ],
                 _p=dict(id='4'))
     load_deposit(dep1)
     pytest.raises(DepositRecidDoesNotExist, load_deposit, dep2)
-    pytest.raises(DepositSIPUserDoesNotExist, load_deposit, dep3)
     pytest.raises(DepositMultipleRecids, load_deposit, dep4)
+
+    # Should set user to null because user_id does not exist
+    load_deposit(dep3)
+    assert SIP.query.filter_by(content="Content3").one().user_id is None
 
 
 def test_deposit_load_task(dummy_location, deposit_dump, deposit_user,

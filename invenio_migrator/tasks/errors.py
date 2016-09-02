@@ -72,20 +72,6 @@ class DepositMultipleRecids(DepositError):
             ", recids: {recids}".format(recids=self.recids)
 
 
-class DepositSIPUserDoesNotExist(DepositError):
-    """Deposit SIP user does not exist."""
-
-    def __init__(self, pid, user_id, *args, **kwargs):
-        """Initialize exception."""
-        self.user_id = user_id
-        super(DepositSIPUserDoesNotExist, self).__init__(pid, *args, **kwargs)
-
-    def __str__(self):
-        """String representation of the error."""
-        return super(DepositSIPUserDoesNotExist, self).__str__() + \
-            ", user_id: {user_id}".format(user_id=self.user_id)
-
-
 class UserEmailExistsError(Exception):
     """User email already exists in the database."""
 
