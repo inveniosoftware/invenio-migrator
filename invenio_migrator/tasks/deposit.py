@@ -30,8 +30,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 
 from .utils import empty_str_if_none
-from .errors import DepositMultipleRecids, DepositRecidDoesNotExist, \
-    DepositSIPUserDoesNotExist
+from .errors import DepositMultipleRecids, DepositRecidDoesNotExist
 
 logger = get_task_logger(__name__)
 
@@ -133,6 +132,8 @@ def create_files_and_sip(deposit, dep_pid):
                     sip['agents'][0].get('email_address', "")),
             )
             user_id = sip['agents'][0]['user_id']
+        if user_id == 0:
+            user_id = None
         content = sip['package']
         sip_format = 'marcxml'
         try:
@@ -144,7 +145,9 @@ def create_files_and_sip(deposit, dep_pid):
             logger.exception('User ID {user_id} referred in deposit {depid} '
                              'does not exists.'.format(
                                  user_id=user_id, depid=dep_pid.pid_value))
-            raise DepositSIPUserDoesNotExist(dep_pid.pid_value, user_id)
+            sip = SIP.create(sip_format,
+                             content,
+                             agent=agent)
 
         # If recid was found, attach it to SIP
         # TODO: This is always uses the first recid, as we quit if multiple
