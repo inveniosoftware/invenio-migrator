@@ -30,8 +30,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 
 from .utils import empty_str_if_none
-from .errors import DepositMultipleRecids, DepositRecidDoesNotExist, \
-    DepositSIPUserDoesNotExist
+from .errors import DepositMultipleRecids, DepositRecidDoesNotExist
 
 logger = get_task_logger(__name__)
 
@@ -149,7 +148,6 @@ def create_files_and_sip(deposit, dep_pid):
             sip = SIP.create(sip_format,
                              content,
                              agent=agent)
-            # raise DepositSIPUserDoesNotExist(dep_pid.pid_value, user_id)
 
         # If recid was found, attach it to SIP
         # TODO: This is always uses the first recid, as we quit if multiple

@@ -160,7 +160,7 @@ def loadcommon(sources, load_task, asynchronous=True, predicate=None,
       after loading the item). This is primarily used for debugging of
       the *dirty* data within the dump. The `predicate` should be a function
       with a signature ``f(dict) -> bool``, i.e. taking a single parameter
-      (an item from the dump, usually a dic) and return ``True`` if the item
+      (an item from the dump) and return ``True`` if the item
       should be loaded. See the ``loaddeposit`` for a concrete example.
 
     :param sources: JSON source files with dumps
