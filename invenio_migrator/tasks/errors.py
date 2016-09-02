@@ -82,7 +82,7 @@ class DepositSIPUserDoesNotExist(DepositError):
 
     def __str__(self):
         """String representation of the error."""
-        return super(DepositRecidDoesNotExist, self).__str__() + \
+        return super(DepositSIPUserDoesNotExist, self).__str__() + \
             ", user_id: {user_id}".format(user_id=self.user_id)
 
 
