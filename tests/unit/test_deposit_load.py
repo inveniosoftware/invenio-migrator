@@ -43,22 +43,23 @@ def test_deposit_load(dummy_location, deposit_user, deposit_record_pid):
     dep1 = dict(sips=[dict(metadata=dict(recid='10'),
                            agents=[dict(user_id=1), ],
                            package='Content1'), ],
-                _p=dict(id='1'))
+                _p=dict(id='1', created='2016-08-25T20:20:18+00:00'))
     dep2 = dict(sips=[dict(metadata=dict(recid='50'),
                            agents=[dict(user_id=1), ],
                            package='Content2'), ],
-                _p=dict(id='2', submitted=True))
+                _p=dict(id='2', submitted=True,
+                        created='2016-08-25T20:20:18+00:00'))
     dep3 = dict(sips=[dict(metadata=dict(recid='10'),
                            agents=[dict(user_id=5), ],
                            package='Content3'), ],
-                _p=dict(id='3'))
+                _p=dict(id='3', created='2016-08-25T20:20:18+00:00'))
     dep4 = dict(sips=[dict(metadata=dict(recid='10'),
                            agents=[dict(user_id=5), ],
                            package='Content4'),
                       dict(metadata=dict(recid='11'),
                            agents=[dict(user_id=5), ],
                            package='Content5'), ],
-                _p=dict(id='4'))
+                _p=dict(id='4', created='2016-08-25T20:20:18+00:00'))
     load_deposit(dep1)
     pytest.raises(DepositMultipleRecids, load_deposit, dep4)
 
@@ -83,7 +84,7 @@ def test_deposit_load_task(dummy_location, deposit_dump, deposit_user,
     # Create a user and a record with PID corresponding with test deposit data
     assert RecordMetadata.query.count() == 1
     for dep in deposit_dump:
-        load_deposit.delay(dep)
+        load_deposit(dep)
     assert RecordMetadata.query.count() == 2
     res = Resolver(pid_type='depid', object_type='rec',
                    getter=Record.get_record)
@@ -103,6 +104,6 @@ def test_deposit_load_task(dummy_location, deposit_dump, deposit_user,
     files = list(dep_recbucket.files)
     assert files[0]['key'] == 'bazbar.pdf'
     assert files[0]['size'] == 12345
-    assert files[0]['checksum'] == "00000000000000000000000000000000"
+    assert files[0]['checksum'] == "md5:00000000000000000000000000000000"
     assert files[0]['bucket']
     assert SIPFile.query.count() == 1

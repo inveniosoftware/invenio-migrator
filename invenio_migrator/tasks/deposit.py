@@ -25,12 +25,16 @@
 """Celery task for records migration."""
 
 from __future__ import absolute_import, print_function
+import arrow
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
+from os.path import splitext
+
+from invenio_pidstore.models import RecordIdentifier
 
 from .utils import empty_str_if_none
-from .errors import DepositMultipleRecids, DepositRecidDoesNotExist
+from .errors import DepositMultipleRecids
 
 logger = get_task_logger(__name__)
 
@@ -64,6 +68,9 @@ def create_record_and_pid(data):
     from invenio_pidstore.models import PersistentIdentifier, PIDStatus
 
     deposit = Record.create(data=data)
+
+    created = arrow.get(data['_p']['created']).datetime
+    deposit.model.created = created.replace(tzinfo=None)
     depid = deposit['_p']['id']
     pid = PersistentIdentifier.create(
         pid_type='depid',
@@ -72,6 +79,8 @@ def create_record_and_pid(data):
         object_uuid=str(deposit.id),
         status=PIDStatus.REGISTERED
     )
+    if RecordIdentifier.query.get(int(depid)) is None:
+        RecordIdentifier.insert(int(depid))
     deposit.commit()
     return deposit, pid
 
@@ -89,6 +98,7 @@ def create_files_and_sip(deposit, dep_pid):
     recbuc = RecordsBuckets(record_id=deposit.id, bucket_id=buc.id)
     db.session.add(recbuc)
     deposit.setdefault('_deposit', dict())
+    deposit.setdefault('_buckets', dict(deposit=str(buc.id)))
     deposit.setdefault('_files', list())
     files = deposit.get('files', [])
     sips = deposit.get('sips', [])
@@ -108,15 +118,23 @@ def create_files_and_sip(deposit, dep_pid):
     dep_file_instances = list()
 
     for file_ in files:
+        size = file_['size']
+        key=file_['name']
+        # Warning: Assumes all checksums are MD5!
+        checksum = 'md5:{0}'.format(file_['checksum'])
         fi = FileInstance.create()
-        fi.set_uri(file_['path'], file_['size'], file_['checksum'])
-        ov = ObjectVersion.create(buc, file_['name'], _file_id=fi.id)
+        fi.set_uri(file_['path'], size, checksum)
+        ov = ObjectVersion.create(buc, key, _file_id=fi.id)
+        ext = splitext(ov.key)[1].lower()
+        if ext.startswith('.'):
+            ext = ext[1:]
         file_meta = dict(
-            bucket=str(buc.id),
-            key=file_['name'],
-            checksum=file_['checksum'],
-            size=file_['size'],
+            bucket=str(ov.bucket.id),
+            key=ov.key,
+            checksum=ov.file.checksum,
+            size=ov.file.size,
             version_id=str(ov.version_id),
+            type=ext,
         )
         deposit['_files'].append(file_meta)
         dep_file_instances.append((file_['path'], fi))
@@ -176,7 +194,6 @@ def create_files_and_sip(deposit, dep_pid):
                     pid_type='recid',
                     pid_value=str(recid),
                     object_type='rec',
-                    object_uuid=str(deposit.id),
                     status=PIDStatus.RESERVED
                 )
         if idx == 0:
