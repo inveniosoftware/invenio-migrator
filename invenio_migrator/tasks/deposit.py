@@ -102,17 +102,49 @@ def create_files_and_sip(deposit, dep_pid):
     deposit.setdefault('_files', list())
     files = deposit.get('files', [])
     sips = deposit.get('sips', [])
-    recid = None
 
-    if sips:
-        recids = [int(sip['metadata']['recid']) for sip in sips]
-        if len(set(recids)) > 1:
-            logger.error('Multiple recids ({recids}) found in deposit {depid}'
-                         ' does not exists.'.format(recids=recids,
-                                                    depid=dep_pid.pid_value))
-            raise DepositMultipleRecids(dep_pid.pid_value, list(set(recids)))
-        elif recids:  # If only one recid
-            recid = recids[0]
+    # Look for prereserved DOI (and recid)
+    if 'drafts' in deposit:
+        drafts = list(deposit['drafts'].items())
+        if len(drafts) != 1:
+            logger.exception('Deposit {dep_pid} has multiple drafts'.format(
+                dep_pid=dep_pid))
+        if len(drafts) == 1:
+            draft_type, draft = drafts[0]
+            draft_v = draft['values']
+            if 'prereserve_doi' in draft_v:
+                pre_recid = str(draft_v['prereserve_doi']['recid'])
+                pre_doi = str(draft_v['prereserve_doi']['doi'])
+
+                # If pre-reserve info available, try to reserve 'recid'
+                try:
+                    pid = PersistentIdentifier.get(pid_type='recid',
+                                                   pid_value=str(pre_recid))
+                except PIDDoesNotExistError:
+                    # Reserve recid
+                    pid = PersistentIdentifier.create(
+                        pid_type='recid',
+                        pid_value=str(pre_recid),
+                        object_type='rec',
+                        status=PIDStatus.RESERVED
+                    )
+
+                # If pre-reserve info available, try to reserve 'doi'
+                try:
+                    pid = PersistentIdentifier.get(pid_type='doi',
+                                                   pid_value=str(pre_doi))
+                except PIDDoesNotExistError:
+                    # Reserve DOI
+                    pid = PersistentIdentifier.create(
+                        pid_type='doi',
+                        pid_value=str(pre_doi),
+                        object_type='rec',
+                        status=PIDStatus.RESERVED
+                    )
+
+                if RecordIdentifier.query.get(int(pre_recid)) is None:
+                    RecordIdentifier.insert(int(pre_recid))
+
 
     # Store the path -> FileInstance mappings for SIPFile creation later
     dep_file_instances = list()
@@ -138,6 +170,19 @@ def create_files_and_sip(deposit, dep_pid):
         )
         deposit['_files'].append(file_meta)
         dep_file_instances.append((file_['path'], fi))
+
+
+    # Get a recid from SIP information
+    recid = None
+    if sips:
+        recids = [int(sip['metadata']['recid']) for sip in sips]
+        if len(set(recids)) > 1:
+            logger.error('Multiple recids ({recids}) found in deposit {depid}'
+                         ' does not exists.'.format(recids=recids,
+                                                    depid=dep_pid.pid_value))
+            raise DepositMultipleRecids(dep_pid.pid_value, list(set(recids)))
+        elif recids:  # If only one recid
+            recid = recids[0]
 
     for idx, sip in enumerate(sips):
         agent = None
@@ -167,13 +212,11 @@ def create_files_and_sip(deposit, dep_pid):
                              content,
                              agent=agent)
 
-        # If recid was found, attach it to SIP
-        # TODO: This is always uses the first recid, as we quit if multiple
-        # recids are found in the sips information
+        # Attach recid to SIP
         if recid:
             try:
                 pid = PersistentIdentifier.get(pid_type='recid',
-                                               pid_value=recid)
+                                               pid_value=str(recid))
                 record_sip = RecordSIP(sip_id=sip.id, pid_id=pid.id)
                 db.session.add(record_sip)
             except PIDDoesNotExistError:
@@ -182,9 +225,8 @@ def create_files_and_sip(deposit, dep_pid):
                                      recid=recid, depid=dep_pid.pid_value))
                 if deposit['_p']['submitted'] == True:
                     logger.exception('Pair {recid}/{depid} was submitted,'
-                                     ' setting to unpublished.'.format(
+                                     ' (should it be unpublished?).'.format(
                                          recid=recid, depid=dep_pid.pid_value))
-                    deposit['_p']['submitted'] = False
                 else:
                     logger.exception('Pair {recid}/{depid} was not submitted.'.
                         format(recid=recid, depid=dep_pid.pid_value))
@@ -196,6 +238,9 @@ def create_files_and_sip(deposit, dep_pid):
                     object_type='rec',
                     status=PIDStatus.RESERVED
                 )
+
+                if RecordIdentifier.query.get(int(recid)) is None:
+                    RecordIdentifier.insert(int(recid))
         if idx == 0:
             for fp, fi in dep_file_instances:
                 sipf = SIPFile(sip_id=sip.id, filepath=fp, file_id=fi.id)
