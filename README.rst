@@ -46,4 +46,4 @@ Utilities for migrating past Invenio versions to Invenio 3.0.
 *This is an experimental developer preview release.*
 
 * Free software: GPLv2 license
-* Documentation: https://pythonhosted.org/invenio-migrator/
+* Documentation: https://invenio-migrator.readthedocs.io/

@@ -24,7 +24,7 @@ Installation
 Documentation
 -------------
 
-   http://pythonhosted.org/invenio-migrator/
+   http://invenio-migrator.readthedocs.io/
 
 Happy hacking and thanks for flying Invenio-Migrator.
 
