@@ -27,7 +27,6 @@
 from __future__ import absolute_import, print_function
 
 from celery import shared_task
-from invenio_oauthclient.models import RemoteAccount, RemoteToken, UserIdentity
 
 from .utils import load_common
 
@@ -39,6 +38,7 @@ def load_remoteaccount(data):
     :param data: Dictionary containing remote accounts data.
     :type data: dict
     """
+    from invenio_oauthclient.models import RemoteAccount
     load_common(RemoteAccount, data)
 
 
@@ -49,6 +49,7 @@ def load_remotetoken(data):
     :param data: Dictionary containing remote tokens data.
     :type data: dict
     """
+    from invenio_oauthclient.models import RemoteToken
     load_common(RemoteToken, data)
 
 
@@ -59,4 +60,5 @@ def load_userext(data):
     :param data: Dictionary containing user identities.
     :type data: dict
     """
+    from invenio_oauthclient.models import UserIdentity
     load_common(UserIdentity, data)

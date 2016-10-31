@@ -31,7 +31,6 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from os.path import splitext
 
-from invenio_pidstore.models import RecordIdentifier
 
 from .utils import empty_str_if_none
 from .errors import DepositMultipleRecids
@@ -65,7 +64,8 @@ def create_record_and_pid(data):
              `invenio_pidstore.models.PersistentIdentifier`)
     """
     from invenio_records.api import Record
-    from invenio_pidstore.models import PersistentIdentifier, PIDStatus
+    from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
+        RecordIdentifier
 
     deposit = Record.create(data=data)
 
@@ -88,7 +88,8 @@ def create_record_and_pid(data):
 def create_files_and_sip(deposit, dep_pid):
     """Create deposit Bucket, Files and SIPs."""
     from invenio_pidstore.errors import PIDDoesNotExistError
-    from invenio_pidstore.models import PersistentIdentifier, PIDStatus
+    from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
+        RecordIdentifier
     from invenio_sipstore.errors import SIPUserDoesNotExist
     from invenio_sipstore.models import SIP, RecordSIP, SIPFile
     from invenio_files_rest.models import Bucket, FileInstance, ObjectVersion
