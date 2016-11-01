@@ -37,7 +37,7 @@ import pytest
 from flask import Flask
 from flask_babelex import Babel
 from flask_celeryext import FlaskCeleryExt
-from flask_cli import FlaskCLI, ScriptInfo
+from flask.cli import ScriptInfo
 from flask_oauthlib.client import OAuth as FlaskOAuth
 from invenio_accounts import InvenioAccounts
 from invenio_accounts.models import User
@@ -83,7 +83,6 @@ def app(request):
         SECURITY_PASSWORD_SALT='TEST',
         SECRET_KEY='TEST',
     )
-    FlaskCLI(app_)
     FlaskCeleryExt(app_)
     InvenioDB(app_)
     InvenioRecords(app_)

@@ -30,7 +30,7 @@ import json
 
 import click
 from celery import chain
-from flask_cli import with_appcontext
+from flask.cli import with_appcontext
 
 from .proxies import current_migrator
 from .tasks.records import import_record
@@ -82,8 +82,8 @@ def loadrecords(sources, source_type, recid):
         click.echo("Record '{recid}' not found.".format(recid=recid))
     else:
         for idx, source in enumerate(sources, 1):
-            click.echo('Loading dump {0} of {1} ({2})'.format(idx, len(sources),
-                                                              source.name))
+            click.echo('Loading dump {0} of {1} ({2})'.format(
+                idx, len(sources), source.name))
             data = json.load(source)
             with click.progressbar(data) as records:
                 for item in records:
@@ -156,7 +156,7 @@ def loadcommon(sources, load_task, asynchronous=True, predicate=None,
     .. note::
 
       The `predicate` argument is used as a predicate function to load only
-      a *single* item from across all dumps (this CLI function will return right
+      a *single* item from across all dumps (this CLI function will return
       after loading the item). This is primarily used for debugging of
       the *dirty* data within the dump. The `predicate` should be a function
       with a signature ``f(dict) -> bool``, i.e. taking a single parameter
@@ -247,7 +247,8 @@ def loaddeposit(sources, depid):
     """
     from .tasks.deposit import load_deposit
     if depid is not None:
-        pred = lambda dep: int(dep["_p"]["id"]) == depid
+        def pred(dep):
+            return int(dep["_p"]["id"]) == depid
         loadcommon(sources, load_deposit, predicate=pred, asynchronous=False)
     else:
         loadcommon(sources, load_deposit)
