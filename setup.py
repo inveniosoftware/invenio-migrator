@@ -59,6 +59,8 @@ extras_require = {
         'invenio-sipstore>=1.0.0a1',
     ],
     'deposit': [
+        # Temporary pin to avoid collision with Flask-Security
+        'Flask-Login>=0.3.2,<0.4',
         'invenio-deposit>=1.0.0.dev20160404',
     ],
     'communities': [
