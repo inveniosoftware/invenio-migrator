@@ -51,28 +51,31 @@ extras_require = {
         'Flask>=0.11.1',
         'arrow>=0.7.0',
         'dojson>=1.0.0',
-        'invenio-db[versioning]>=1.0.0a9',
-        'invenio-files-rest>=1.0.0a1',
-        'invenio-pidstore>=1.0.0a6',
-        'invenio-records>=1.0.0a9',
-        'invenio-records-files>=1.0.0a1',
-        'invenio-sipstore>=1.0.0a1',
+        'invenio-db[versioning]>=1.0.0b3',
+        'invenio-files-rest>=1.0.0a13',
+        'invenio-pidstore>=1.0.0b1',
+        'invenio-records>=1.0.0b1',
+        'invenio-records-files>=1.0.0a7',
+        'invenio-sipstore>=1.0.0a3',
+        # FIXME
+        'elasticsearch<3.0.0,>=2.0.0',
+        'elasticsearch-dsl<3.0.0,>=2.0.0',
+        'celery<4.0,>=3.1',
     ],
     'deposit': [
-        'invenio-deposit>=1.0.0.dev20160404',
+        'invenio-deposit>=1.0.0a6',
     ],
     'communities': [
-        'invenio-communities>=1.0.0a1',
+        'invenio-communities>=1.0.0a13',
     ],
     'userprofiles': [
-        'invenio-userprofiles>=1.0.0a4',
-        'Flask-Security>=1.7.5',
+        'invenio-userprofiles>=1.0.0a8',
     ],
     'oauthclient': [
         'invenio-oauthclient>=1.0.0a7',
     ],
     'oauth2server': [
-        'invenio-oauth2server>=1.0.0a7',
+        'invenio-oauth2server>=1.0.0a12',
     ],
     'tests': tests_require,
 }
