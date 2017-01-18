@@ -144,6 +144,8 @@ setup(
             'tokens = invenio_migrator.legacy.tokens',
             'userexts = invenio_migrator.legacy.userexts',
             'users = invenio_migrator.legacy.users',
+            'circ_locations = invenio_migrator.legacy.circulation_locations',
+            'circ_items = invenio_migrator.legacy.circulation_items',
         ]
     },
     extras_require=extras_require,
