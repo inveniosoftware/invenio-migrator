@@ -145,7 +145,7 @@ def inspectrecords(sources, recid, entity=None):
 
 
 def loadcommon(sources, load_task, asynchronous=True, predicate=None,
-               task_args=None, task_kwargs=None):
+               task_args=None, task_kwargs=None, continue_on_error=False):
     """Common helper function for load simple objects.
 
     .. note::
@@ -175,6 +175,8 @@ def loadcommon(sources, load_task, asynchronous=True, predicate=None,
     :type task_args: tuple
     :param task_kwargs: named arguments passed to the task.
     :type task_kwargs: dict
+    :param continue_on_error: continue to the next item in case of error.
+    :type task_kwargs: bool
     """
     # resolve the defaults for task_args and task_kwargs
     task_args = tuple() if task_args is None else task_args
@@ -186,50 +188,63 @@ def loadcommon(sources, load_task, asynchronous=True, predicate=None,
         data = json.load(source)
         with click.progressbar(data) as data_bar:
             for d in data_bar:
-                # Load a single item from the dump
-                if predicate is not None:
-                    if predicate(d):
-                        load_task.s(d, *task_args, **task_kwargs).apply(
-                            throw=True)
-                        click.echo("Loaded a single record.")
-                        return
-                # Load dumps normally
-                else:
-                    if asynchronous:
-                        load_task.s(d, *task_args, **task_kwargs).apply_async()
+                try:
+                    # Load a single item from the dump
+                    if predicate is not None:
+                        if predicate(d):
+                            load_task.s(d, *task_args, **task_kwargs).apply(
+                                throw=True)
+                            click.echo("Loaded a single record.")
+                            return
+                    # Load dumps normally
                     else:
-                        load_task.s(d, *task_args, **task_kwargs).apply(
-                            throw=True)
+                        if asynchronous:
+                            load_task.s(d, *task_args, **task_kwargs).apply_async()
+                        else:
+                            load_task.s(d, *task_args, **task_kwargs).apply(
+                                throw=True)
+                except Exception as err:
+                    if continue_on_error:
+                        click.echo("Error when migration {d}: {err}".format(
+                            d=d, err=err), err=True)
+                    else:
+                        raise
 
 
 @dumps.command()
 @click.argument('sources', type=click.File('r'), nargs=-1)
 @click.argument('logos_dir', type=click.Path(exists=True), default=None)
+@click.option('--continue-on-error', is_flag=True)
 @with_appcontext
-def loadcommunities(sources, logos_dir):
+def loadcommunities(sources, logos_dir, continue_on_error=False):
     """Load communities."""
     from invenio_migrator.tasks.communities import load_community
-    loadcommon(sources, load_community, task_args=(logos_dir, ))
+    loadcommon(sources, load_community, task_args=(logos_dir, ),
+               continue_on_error=continue_on_error)
 
 
 @dumps.command()
 @click.argument('sources', type=click.File('r'), nargs=-1)
+@click.option('--continue-on-error', is_flag=True)
 @with_appcontext
-def loadfeatured(sources):
+def loadfeatured(sources, continue_on_error=False):
     """Load community featurings."""
     from invenio_migrator.tasks.communities import load_featured
-    loadcommon(sources, load_featured)
+    loadcommon(sources, load_featured,
+               continue_on_error=continue_on_error)
 
 
 @dumps.command()
 @click.argument('sources', type=click.File('r'), nargs=-1)
+@click.option('--continue-on-error', is_flag=True)
 @with_appcontext
-def loadusers(sources):
+def loadusers(sources, continue_on_error=False):
     """Load users."""
     from .tasks.users import load_user
     # Cannot be executed asynchronously due to duplicate emails and usernames
     # which can create a racing condition.
-    loadcommon(sources, load_user, asynchronous=False)
+    loadcommon(sources, load_user, asynchronous=False,
+               continue_on_error=continue_on_error)
 
 
 @dumps.command()
@@ -237,8 +252,9 @@ def loadusers(sources):
 @click.option('--depid', '-d', type=int,
               help='Deposit ID to load (Note: will load only one deposit!).',
               default=None)
+@click.option('--continue-on-error', is_flag=True)
 @with_appcontext
-def loaddeposit(sources, depid):
+def loaddeposit(sources, depid, continue_on_error=False):
     """Load deposit.
 
     Usage:
@@ -249,51 +265,63 @@ def loaddeposit(sources, depid):
     if depid is not None:
         def pred(dep):
             return int(dep["_p"]["id"]) == depid
-        loadcommon(sources, load_deposit, predicate=pred, asynchronous=False)
+        loadcommon(sources, load_deposit, predicate=pred, asynchronous=False,
+                   continue_on_error=continue_on_error)
     else:
-        loadcommon(sources, load_deposit)
+        loadcommon(sources, load_deposit,
+                   continue_on_error=continue_on_error)
 
 
 @dumps.command()
 @click.argument('sources', type=click.File('r'), nargs=-1)
+@click.option('--continue-on-error', is_flag=True)
 @with_appcontext
-def loadremoteaccounts(sources):
+def loadremoteaccounts(sources, continue_on_error=False):
     """Load remote accounts."""
     from .tasks.oauthclient import load_remoteaccount
-    loadcommon(sources, load_remoteaccount)
+    loadcommon(sources, load_remoteaccount,
+               continue_on_error=continue_on_error)
 
 
 @dumps.command()
 @click.argument('sources', type=click.File('r'), nargs=-1)
+@click.option('--continue-on-error', is_flag=True)
 @with_appcontext
-def loadremotetokens(sources):
+def loadremotetokens(sources, continue_on_error=False):
     """Load remote tokens."""
     from .tasks.oauthclient import load_remotetoken
-    loadcommon(sources, load_remotetoken)
+    loadcommon(sources, load_remotetoken,
+               continue_on_error=continue_on_error)
 
 
 @dumps.command()
 @click.argument('sources', type=click.File('r'), nargs=-1)
+@click.option('--continue-on-error', is_flag=True)
 @with_appcontext
-def loaduserexts(sources):
+def loaduserexts(sources, continue_on_error=False):
     """Load user identities (legacy UserEXT)."""
     from .tasks.oauthclient import load_userext
-    loadcommon(sources, load_userext)
+    loadcommon(sources, load_userext,
+               continue_on_error=continue_on_error)
 
 
 @dumps.command()
 @click.argument('sources', type=click.File('r'), nargs=-1)
+@click.option('--continue-on-error', is_flag=True)
 @with_appcontext
-def loadtokens(sources):
+def loadtokens(sources, continue_on_error=False):
     """Load server tokens."""
     from .tasks.oauth2server import load_token
-    loadcommon(sources, load_token)
+    loadcommon(sources, load_token,
+               continue_on_error=continue_on_error)
 
 
 @dumps.command()
 @click.argument('sources', type=click.File('r'), nargs=-1)
+@click.option('--continue-on-error', is_flag=True)
 @with_appcontext
-def loadclients(sources):
+def loadclients(sources, continue_on_error=False):
     """Load server clients."""
     from .tasks.oauth2server import load_client
-    loadcommon(sources, load_client)
+    loadcommon(sources, load_client,
+               continue_on_error=continue_on_error)
