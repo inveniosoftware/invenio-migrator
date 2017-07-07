@@ -1,8 +1,8 @@
 ===========================
- Invenio-Migrator v1.0.0a8
+ Invenio-Migrator v1.0.0a9
 ===========================
 
-Invenio-Migrator v1.0.0a8 was released on September 1, 2016.
+Invenio-Migrator v1.0.0a9 was released on July 7, 2017.
 
 About
 -----
@@ -19,7 +19,7 @@ What's new
 Installation
 ------------
 
-   $ pip install invenio-migrator==1.0.0a8
+   $ pip install invenio-migrator==1.0.0a9
 
 Documentation
 -------------
