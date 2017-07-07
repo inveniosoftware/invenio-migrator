@@ -22,7 +22,7 @@
 # waive the privileges and immunities granted to it by virtue of its status
 # as an Intergovernmental Organization or submit itself to any jurisdiction.
 
-""""Helper methods."""
+"""Helper methods."""
 
 from __future__ import absolute_import, print_function
 
@@ -51,16 +51,17 @@ def iso2dt_or_none(iso_dt):
 def logo_ext_wash(logo_ext):
     """Handle the legacy logo extensions.
 
-    Examples:
-    None -> None
-    'png' -> 'png'
-    '0' -> None
-    '.jpg' -> 'jpg'
-
     :param logo_ext: Community logo extension.
     :type logo_ext: string or None
     :returns: Washed logo extension.
     :rtype: string or None
+
+    Examples:
+      None -> None
+      'png' -> 'png'
+      '0' -> None
+      '.jpg' -> 'jpg'
+
     """
     if logo_ext is None:
         return None
