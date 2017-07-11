@@ -26,6 +26,7 @@
 
 from __future__ import absolute_import, print_function
 
+from functools import wraps
 from os.path import splitext
 
 import arrow
@@ -40,7 +41,35 @@ from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
 from invenio_pidstore.resolver import Resolver
 from invenio_records.api import Record
 from invenio_records_files.models import RecordsBuckets
+from sqlalchemy.event import contains, listen, remove
+from sqlalchemy_utils.models import Timestamp, timestamp_before_update
 from werkzeug.utils import cached_property
+
+
+class correct_date(object):
+    """Temporarily disable Timestamp date update."""
+
+    def __enter__(self):
+        """Disable date update."""
+        self._found = contains(
+            Timestamp, 'before_update', timestamp_before_update)
+        if self._found:
+            remove(Timestamp, 'before_update', timestamp_before_update)
+
+    def __exit__(self, type, value, traceback):
+        """Re-enable date update."""
+        if self._found:
+            listen(Timestamp, 'before_update', timestamp_before_update)
+
+
+def disable_timestamp(method):
+    """Disable timestamp update per method."""
+    @wraps(method)
+    def wrapper(*args, **kwargs):
+        with correct_date():
+            result = method(*args, **kwargs)
+        return result
+    return wrapper
 
 
 class RecordDumpLoader(object):
@@ -70,7 +99,9 @@ class RecordDumpLoader(object):
         existing_files = []
         if dump.record:
             existing_files = dump.record.get('_files', [])
-            record = cls.update_record(dump)
+            record = cls.update_record(revisions=dump.revisions,
+                                       created=dump.created,
+                                       record=dump.record)
             pids = dump.missing_pids
         else:
             record = cls.create_record(dump)
@@ -89,13 +120,15 @@ class RecordDumpLoader(object):
         return record
 
     @classmethod
+    @disable_timestamp
     def create_record(cls, dump):
         """Create a new record from dump."""
         # Reserve record identifier, create record and recid pid in one
         # operation.
-        timestamp, data = dump.pop_first_revision()
+        timestamp, data = dump.latest
         record = Record.create(data)
-        record.model.created = timestamp.replace(tzinfo=None)
+        record.model.created = dump.created.replace(tzinfo=None)
+        record.model.updated = timestamp.replace(tzinfo=None)
         RecordIdentifier.insert(dump.recid)
         PersistentIdentifier.create(
             pid_type='recid',
@@ -105,15 +138,17 @@ class RecordDumpLoader(object):
             status=PIDStatus.REGISTERED
         )
         db.session.commit()
-        return cls.update_record(dump, record=record)
+        return cls.update_record(revisions=dump.rest, record=record,
+                                 created=dump.created)
 
     @staticmethod
-    def update_record(dump, record=None):
+    @disable_timestamp
+    def update_record(revisions, created, record):
         """Update an existing record."""
-        record = record or dump.record
-        for timestamp, revision in dump.revisions:
+        for timestamp, revision in revisions:
             record.model.json = revision
-            record.model.created = timestamp.replace(tzinfo=None)
+            record.model.created = created.replace(tzinfo=None)
+            record.model.updated = timestamp.replace(tzinfo=None)
             db.session.commit()
         return Record(record.model.json, model=record.model)
 
@@ -311,9 +346,20 @@ class RecordDump(object):
             if val:
                 self.pids.append(val)
 
-    def pop_first_revision(self):
+    @property
+    def created(self):
+        """Get creation date."""
+        return self.revisions[0][0]
+
+    @property
+    def latest(self):
         """Get the first revision."""
-        return self.revisions.pop(0)
+        return self.revisions[0]
+
+    @property
+    def rest(self):
+        """The list of old revisions."""
+        return self.revisions[1:]
 
     def is_deleted(self, record=None):
         """Check if record is deleted."""
