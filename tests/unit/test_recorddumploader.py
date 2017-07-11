@@ -40,18 +40,28 @@ from sqlalchemy.orm.exc import NoResultFound
 from invenio_migrator.records import RecordDumpLoader
 
 
-def test_new_record(app, db, dummy_location, record_dump, resolver):
+def test_new_record(app, db, dummy_location, record_dumps, resolver):
     """Test creation of new record."""
-    RecordDumpLoader.create(record_dump)
-    pid, record = resolver.resolve('11782')
+    RecordDumpLoader.create(record_dumps)
+    pid, record = resolver.resolve('11783')
+    created = datetime(2011, 10, 13, 8, 27, 47)
     # Basic some test that record exists
     assert record['title']
-    assert record.created == datetime(2014, 10, 13, 8, 27, 47)
+    assert record.created == created
     # Test that this is a completely new record
-    assert len(record.revisions) == 2
-    pytest.raises(IntegrityError, RecordIdentifier.insert, 11782)
+    assert len(record.revisions) == 3
+
+    # check revisions
+    assert record.revisions[2].created == created
+    assert record.revisions[2].updated == datetime(2012, 10, 13, 8, 27, 47)
+    assert record.revisions[1].created == created
+    assert record.revisions[1].updated == datetime(2012, 10, 13, 8, 27, 47)
+    assert record.revisions[0].created == created
+    assert record.revisions[0].updated == datetime(2011, 10, 13, 8, 27, 47)
+
+    pytest.raises(IntegrityError, RecordIdentifier.insert, 11783)
     # Test the PIDs are extracted and created
-    assert PersistentIdentifier.get('doi', '10.5281/zenodo.11782')
+    assert PersistentIdentifier.get('doi', '10.5281/zenodo.11783')
 
     assert len(record['_files']) == 1
     f = record['_files'][0]

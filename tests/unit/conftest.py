@@ -311,6 +311,19 @@ def record_dump(records_json):
 
 
 @pytest.fixture()
+def record_dumps(records_json):
+    """A record dump."""
+    def doi_fetcher(record_uuid, data):
+        if 'doi' in data:
+            return FetchedPID(
+                pid_type='doi', pid_value=data['doi'], provider=None
+            )
+        return None
+    return RecordDump(
+        records_json[2], source_type='json', pid_fetchers=[doi_fetcher])
+
+
+@pytest.fixture()
 def resolver():
     """PID resolver."""
     return Resolver(

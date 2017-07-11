@@ -90,13 +90,13 @@ def test_record_property_no_record(app, db, records_json):
     assert d.record is None
 
 
-def test_pop_first_revision(records_json):
+def test_latest_revision(records_json):
     """Test get files."""
     d = RecordDump(records_json[0])
     d.prepare_revisions()
     assert len(d.revisions) == 1
-    assert d.pop_first_revision()
-    assert len(d.revisions) == 0
+    assert d.latest
+    assert len(d.revisions) == 1
 
 
 def test_prepare_pids(app, db, records_json, record_db):
@@ -144,7 +144,7 @@ def test_is_deleted(records_json):
             'json': {'collections': ['deleted']},
             'modification_datetime': '2014-10-10T10:10:10Z'
         }],
-         'collections': []
+            'collections': []
         },
         source_type='json'
     )
