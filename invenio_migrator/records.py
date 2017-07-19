@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2016 CERN.
+# Copyright (C) 2016, 2017 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -26,7 +26,6 @@
 
 from __future__ import absolute_import, print_function
 
-from functools import wraps
 from os.path import splitext
 
 import arrow
@@ -41,35 +40,9 @@ from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
 from invenio_pidstore.resolver import Resolver
 from invenio_records.api import Record
 from invenio_records_files.models import RecordsBuckets
-from sqlalchemy.event import contains, listen, remove
-from sqlalchemy_utils.models import Timestamp, timestamp_before_update
 from werkzeug.utils import cached_property
 
-
-class correct_date(object):
-    """Temporarily disable Timestamp date update."""
-
-    def __enter__(self):
-        """Disable date update."""
-        self._found = contains(
-            Timestamp, 'before_update', timestamp_before_update)
-        if self._found:
-            remove(Timestamp, 'before_update', timestamp_before_update)
-
-    def __exit__(self, type, value, traceback):
-        """Re-enable date update."""
-        if self._found:
-            listen(Timestamp, 'before_update', timestamp_before_update)
-
-
-def disable_timestamp(method):
-    """Disable timestamp update per method."""
-    @wraps(method)
-    def wrapper(*args, **kwargs):
-        with correct_date():
-            result = method(*args, **kwargs)
-        return result
-    return wrapper
+from .utils import disable_timestamp
 
 
 class RecordDumpLoader(object):
@@ -141,9 +114,9 @@ class RecordDumpLoader(object):
         return cls.update_record(revisions=dump.rest, record=record,
                                  created=dump.created)
 
-    @staticmethod
+    @classmethod
     @disable_timestamp
-    def update_record(revisions, created, record):
+    def update_record(cls, revisions, created, record):
         """Update an existing record."""
         for timestamp, revision in revisions:
             record.model.json = revision
@@ -152,8 +125,8 @@ class RecordDumpLoader(object):
             db.session.commit()
         return Record(record.model.json, model=record.model)
 
-    @staticmethod
-    def create_pids(record_uuid, pids):
+    @classmethod
+    def create_pids(cls, record_uuid, pids):
         """Create persistent identifiers."""
         for p in pids:
             PersistentIdentifier.create(
@@ -239,8 +212,8 @@ class RecordDumpLoader(object):
         db.session.commit()
         return objs[-1]
 
-    @staticmethod
-    def delete_buckets(record):
+    @classmethod
+    def delete_buckets(cls, record):
         """Delete the bucket."""
         files = record.get('_files', [])
         buckets = set()
