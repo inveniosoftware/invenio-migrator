@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2016 CERN.
+# Copyright (C) 2016, 2017 CERN.
 #
 # Invenio is free software; you can redistribute it
 # and/or modify it under the terms of the GNU General Public License as
@@ -92,11 +92,9 @@ def load_user(data):
     # Invenio 1.x or 2.x data dumper script. In such case, those values will
     # have precedence over the 'nickname' field.
     if nickname or overwritten_username:
-        full_name = (data.get('given_names', '') + u' ' +
-                     data.get('family_name', '')).strip()
-
         p = UserProfile(user=obj)
-        p.full_name = full_name or ''
+        p.full_name = data.get('full_name', '').strip()
+
         if overwritten_username:
             p._username = data['username'].lower()
             p._displayname = data['displayname']
