@@ -26,10 +26,17 @@
 
 from __future__ import absolute_import, print_function
 
-from invenio_files_rest.models import ObjectVersion
+import mock
+import pytest
+
+from invenio_records_files.models import RecordsBuckets
+from invenio_files_rest.models import ObjectVersion, Bucket, BucketTag, \
+    FileInstance
 from invenio_records.models import RecordMetadata
+from invenio_pidstore.models import PersistentIdentifier, RecordIdentifier
 
 from invenio_migrator.tasks.records import import_record
+from invenio_migrator.records import RecordDump
 
 
 def test_import_record(app, db, dummy_location, record_dump, records_json,
@@ -58,3 +65,23 @@ def test_import_record(app, db, dummy_location, record_dump, records_json,
         "ALEPH",
     ]
     assert len(record['_files']) == 2
+
+
+def test_failing_import_record(app, dummy_location, record_dump, records_json,
+                               resolver):
+    """Test failing a import record."""
+    with mock.patch.object(RecordDump, 'is_deleted') as mock_create:
+        mock_create.side_effect = Exception('error')
+        with pytest.raises(Exception):
+            import_record(records_json[0], source_type='json')
+
+    assert RecordMetadata.query.all() == []
+    assert PersistentIdentifier.query.all() == []
+    assert RecordIdentifier.query.all() == []
+    assert Bucket.query.all() == []
+    assert BucketTag.query.all() == []
+    assert ObjectVersion.query.all() == []
+    # TODO enable when invenio-files-rest#167 is merged
+    #  assert ObjectVersionTag.query.all() == []
+    assert FileInstance.query.all() == []
+    assert RecordsBuckets.query.all() == []

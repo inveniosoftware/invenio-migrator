@@ -33,9 +33,11 @@ from invenio_files_rest.models import Bucket, BucketTag, FileInstance, \
     ObjectVersion
 from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
     RecordIdentifier
+from invenio_records_files.models import RecordsBuckets
 from invenio_records.api import Record
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
+from invenio_records.models import RecordMetadata
 
 from invenio_migrator.records import RecordDumpLoader
 
@@ -70,6 +72,24 @@ def test_new_record(app, db, dummy_location, record_dumps, resolver):
     assert obj.file.size == f['size']
 
     assert BucketTag.get_value(f['bucket'], 'record') == str(record.id)
+
+
+def test_record_clean(app, dummy_location, record_dumps, resolver):
+    """Test clean of a record after dump."""
+    RecordDumpLoader.create(record_dumps)
+    pid, record = resolver.resolve('11783')
+    RecordDumpLoader.clean(dump=record_dumps)
+
+    assert RecordMetadata.query.all() == []
+    assert PersistentIdentifier.query.all() == []
+    assert RecordIdentifier.query.all() == []
+    assert Bucket.query.all() == []
+    assert BucketTag.query.all() == []
+    assert ObjectVersion.query.all() == []
+    # TODO enable when invenio-files-rest#167 is merged
+    #  assert ObjectVersionTag.query.all() == []
+    assert FileInstance.query.all() == []
+    assert RecordsBuckets.query.all() == []
 
 
 def test_update_record(app, db, dummy_location, record_dump, record_db,

@@ -34,6 +34,7 @@ from dojson.contrib.marc21.utils import create_record
 from invenio_db import db
 from invenio_files_rest.models import Bucket, BucketTag, FileInstance, \
     ObjectVersion
+from invenio_files_rest.tasks import remove_file_data
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
     RecordIdentifier
@@ -47,6 +48,54 @@ from .utils import disable_timestamp
 
 class RecordDumpLoader(object):
     """Migrate a record."""
+
+    @classmethod
+    def clean(cls, dump, delete_files=False):
+        """Clean a record with all connected objects."""
+        record = dump.resolver.resolve(dump.data['recid'])[1]
+        cls.clean_buckets(record, delete_files=delete_files)
+        cls.clean_pids(dump, record)
+        cls.clean_record(record)
+
+    @classmethod
+    def clean_record(cls, record):
+        """Clean record."""
+        db.session.delete(record.model)
+
+    @classmethod
+    def clean_files(cls, bucket, delete_files):
+        """Clean files."""
+        for obj in ObjectVersion.query.filter_by(bucket=bucket).all():
+            obj.file.writable = True
+            db.session.delete(obj)
+            if delete_files:
+                remove_file_data.s(file_id=obj.file_id).apply()
+            else:
+                obj.file.delete()
+
+    @classmethod
+    def clean_buckets(cls, record, delete_files):
+        """Clean buckets."""
+        for rb in RecordsBuckets.query.filter_by(record_id=record.id).all():
+            bucket = rb.bucket
+            cls.clean_files(bucket=bucket, delete_files=delete_files)
+            for tag in BucketTag.query.filter_by(bucket=bucket).all():
+                db.session.delete(tag)
+            db.session.delete(rb)
+            db.session.delete(bucket)
+
+    @classmethod
+    def _get_pids(cls, record):
+        """Get all pids."""
+        return PersistentIdentifier.query.filter_by(
+            object_type='rec', object_uuid=record.id).all()
+
+    @classmethod
+    def clean_pids(cls, dump, record):
+        """Clean all pids."""
+        RecordIdentifier.query.filter_by(recid=dump.recid).delete()
+        for pid in cls._get_pids(record):
+            db.session.delete(pid)
 
     @classmethod
     def create(cls, dump):
