@@ -37,9 +37,9 @@ tests_require = [
     'isort>=4.2.2',
     'pydocstyle>=1.0.0',
     'pytest-cache>=1.0',
-    'pytest-cov>=1.8.0',
+    'pytest-cov>=2.6.0',
     'pytest-pep8>=1.0.6',
-    'pytest>=2.8.0',
+    'pytest>=3.6',
 ]
 
 extras_require = {
@@ -47,6 +47,11 @@ extras_require = {
         'Sphinx>=1.4.2,<1.6',
     ],
     'loader': [
+        # necessary because requests-oauthlib min version does not have max
+        # version for oauthlib
+        'oauthlib>=1.1.2,<3.0.0',
+        'requests-oauthlib>=0.5.0,<1.2.0',
+        'Flask-OAuthlib>=0.9.3',
         'Flask-CeleryExt>=0.2.0',
         'Flask>=0.11.1',
         'arrow>=0.7.0',
@@ -62,6 +67,11 @@ extras_require = {
         'elasticsearch<3.0.0,>=2.0.0',
         'elasticsearch-dsl<3.0.0,>=2.0.0',
         'celery<4.0,>=3.1',
+        # https://github.com/inveniosoftware/invenio-db/pull/111
+        'SQLAlchemy-Continuum>=1.3,<1.3.5',
+        # from invenio-search
+        'urllib3<1.25,>=1.21.1',  # from "requests"
+        'idna>=2.5,<2.8',  # from "requests"
     ],
     'deposit': [
         'invenio-deposit>=1.0.0a6',
@@ -76,7 +86,7 @@ extras_require = {
         'invenio-oauthclient>=1.0.0a7',
     ],
     'oauth2server': [
-        'invenio-oauth2server>=1.0.0a12',
+        'invenio-oauth2server>=1.0.3',
     ],
     'tests': tests_require,
 }
@@ -92,7 +102,7 @@ setup_requires = [
 install_requires = [
     'Click>=6.3',
     'six>=1.10.0',
-    'Werkzeug>=0.11.4',
+    'Werkzeug>=0.14',
 ]
 
 packages = find_packages()
