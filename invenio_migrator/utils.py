@@ -27,8 +27,8 @@
 
 from functools import wraps
 
+from invenio_records.models import Timestamp, timestamp_before_update
 from sqlalchemy.event import contains, listen, remove
-from sqlalchemy_utils.models import Timestamp, timestamp_before_update
 
 
 class correct_date(object):

@@ -146,13 +146,12 @@ def create_files_and_sip(deposit, dep_pid):
                 if RecordIdentifier.query.get(int(pre_recid)) is None:
                     RecordIdentifier.insert(int(pre_recid))
 
-
     # Store the path -> FileInstance mappings for SIPFile creation later
     dep_file_instances = list()
 
     for file_ in files:
         size = file_['size']
-        key=file_['name']
+        key = file_['name']
         # Warning: Assumes all checksums are MD5!
         checksum = 'md5:{0}'.format(file_['checksum'])
         fi = FileInstance.create()
@@ -171,7 +170,6 @@ def create_files_and_sip(deposit, dep_pid):
         )
         deposit['_files'].append(file_meta)
         dep_file_instances.append((file_['path'], fi))
-
 
     # Get a recid from SIP information
     recid = None
@@ -224,13 +222,14 @@ def create_files_and_sip(deposit, dep_pid):
                 logger.exception('Record {recid} referred in '
                                  'Deposit {depid} does not exists.'.format(
                                      recid=recid, depid=dep_pid.pid_value))
-                if deposit['_p']['submitted'] == True:
+                if deposit['_p']['submitted'] is True:
                     logger.exception('Pair {recid}/{depid} was submitted,'
                                      ' (should it be unpublished?).'.format(
                                          recid=recid, depid=dep_pid.pid_value))
                 else:
-                    logger.exception('Pair {recid}/{depid} was not submitted.'.
-                        format(recid=recid, depid=dep_pid.pid_value))
+                    msg = 'Pair {recid}/{depid} was not submitted.'.format(
+                        recid=recid, depid=dep_pid.pid_value)
+                    logger.exception(msg)
 
                 # Reserve recid
                 pid = PersistentIdentifier.create(
