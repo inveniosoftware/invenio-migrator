@@ -1,8 +1,8 @@
 ===========================
- Invenio-Migrator v1.0.0a9
+ Invenio-Migrator v1.0.0a10
 ===========================
 
-Invenio-Migrator v1.0.0a9 was released on July 7, 2017.
+Invenio-Migrator v1.0.0a10 was released on January 18, 2019.
 
 About
 -----
