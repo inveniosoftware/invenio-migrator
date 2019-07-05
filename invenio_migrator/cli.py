@@ -260,7 +260,7 @@ def loaddeposit(sources, depid):
 def loadremoteaccounts(sources):
     """Load remote accounts."""
     from .tasks.oauthclient import load_remoteaccount
-    loadcommon(sources, load_remoteaccount)
+    loadcommon(sources, load_remoteaccount, asynchronous=False)
 
 
 @dumps.command()
@@ -269,7 +269,7 @@ def loadremoteaccounts(sources):
 def loadremotetokens(sources):
     """Load remote tokens."""
     from .tasks.oauthclient import load_remotetoken
-    loadcommon(sources, load_remotetoken)
+    loadcommon(sources, load_remotetoken, asynchronous=False)
 
 
 @dumps.command()
@@ -278,7 +278,7 @@ def loadremotetokens(sources):
 def loaduserexts(sources):
     """Load user identities (legacy UserEXT)."""
     from .tasks.oauthclient import load_userext
-    loadcommon(sources, load_userext)
+    loadcommon(sources, load_userext, asynchronous=False)
 
 
 @dumps.command()
@@ -287,7 +287,7 @@ def loaduserexts(sources):
 def loadtokens(sources):
     """Load server tokens."""
     from .tasks.oauth2server import load_token
-    loadcommon(sources, load_token)
+    loadcommon(sources, load_token, asynchronous=False)
 
 
 @dumps.command()
@@ -296,4 +296,4 @@ def loadtokens(sources):
 def loadclients(sources):
     """Load server clients."""
     from .tasks.oauth2server import load_client
-    loadcommon(sources, load_client)
+    loadcommon(sources, load_client, asynchronous=False)
