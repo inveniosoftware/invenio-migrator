@@ -26,16 +26,20 @@
 
 from __future__ import absolute_import, print_function
 
+from copy import deepcopy
 from datetime import datetime
 
 import pytest
+from invenio_deposit.api import Deposit
 from invenio_files_rest.models import Bucket, BucketTag, FileInstance, \
     ObjectVersion
 from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
     RecordIdentifier
-from invenio_records.api import Record
+from invenio_records_files.models import RecordsBuckets
+from invenio_records_files.api import Record
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
+from invenio_records.models import RecordMetadata
 
 from invenio_migrator.records import RecordDumpLoader
 
@@ -70,6 +74,34 @@ def test_new_record(app, db, dummy_location, record_dumps, resolver):
     assert obj.file.size == f['size']
 
     assert BucketTag.get_value(f['bucket'], 'record') == str(record.id)
+
+
+def test_record_clean(app, db, dummy_location, record_dumps, resolver):
+    """Test clean of a record after dump."""
+    RecordDumpLoader.create(record_dumps)
+    pid, record = resolver.resolve('11783')
+
+    # simulate a deposit
+    deposit = Deposit.create(deepcopy(record))
+    record.model.json = deepcopy(deposit)
+    db.session.add(record.model)
+    bucket = Record(record, record.model).files.bucket.snapshot()
+    rb = RecordsBuckets(record_id=record.id, bucket_id=bucket.id)
+    db.session.add(bucket)
+    db.session.add(rb)
+
+    RecordDumpLoader.clean(dump=record_dumps)
+
+    assert RecordMetadata.query.all() == []
+    assert PersistentIdentifier.query.all() == []
+    assert RecordIdentifier.query.all() == []
+    assert Bucket.query.all() == []
+    assert BucketTag.query.all() == []
+    assert ObjectVersion.query.all() == []
+    # TODO enable when invenio-files-rest#167 is merged
+    #  assert ObjectVersionTag.query.all() == []
+    assert FileInstance.query.all() == []
+    assert RecordsBuckets.query.all() == []
 
 
 def test_update_record(app, db, dummy_location, record_dump, record_db,

@@ -47,6 +47,7 @@ from invenio_db import InvenioDB
 from invenio_deposit import InvenioDeposit
 from invenio_files_rest import InvenioFilesREST
 from invenio_files_rest.models import Bucket, Location, ObjectVersion
+from invenio_indexer import InvenioIndexer
 from invenio_jsonschemas.ext import InvenioJSONSchemas
 from invenio_oauthclient import InvenioOAuthClient
 from invenio_pidstore import InvenioPIDStore
@@ -56,6 +57,7 @@ from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
 from invenio_pidstore.resolver import Resolver
 from invenio_records import InvenioRecords
 from invenio_records.api import Record
+from invenio_search import InvenioSearch
 from invenio_sipstore.ext import InvenioSIPStore
 from six import BytesIO
 from sqlalchemy_utils.functions import create_database, database_exists
@@ -97,6 +99,8 @@ def app(request):
     InvenioMigrator(app_)
     FlaskOAuth(app_)
     InvenioOAuthClient(app_)
+    InvenioIndexer(app_)
+    InvenioSearch(app_)
 
     with app_.app_context():
         yield app_

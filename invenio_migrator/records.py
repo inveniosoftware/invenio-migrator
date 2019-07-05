@@ -31,15 +31,19 @@ from os.path import splitext
 import arrow
 from dojson.contrib.marc21 import marc21
 from dojson.contrib.marc21.utils import create_record
+from flask import current_app as app
 from invenio_db import db
 from invenio_files_rest.models import Bucket, BucketTag, FileInstance, \
     ObjectVersion
+from invenio_files_rest.tasks import remove_file_data
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_pidstore.models import PersistentIdentifier, PIDStatus, \
     RecordIdentifier
 from invenio_pidstore.resolver import Resolver
-from invenio_records.api import Record
+from invenio_records.models import RecordMetadata
+from invenio_records_files.api import Record
 from invenio_records_files.models import RecordsBuckets
+from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.utils import cached_property
 
 from .utils import disable_timestamp
@@ -47,6 +51,99 @@ from .utils import disable_timestamp
 
 class RecordDumpLoader(object):
     """Migrate a record."""
+
+    @classmethod
+    def clean(cls, dump, delete_files=False):
+        """Clean a record with all connected objects."""
+        app.logger.debug('Clean record {0}'.format(dump.recid))
+        record = dump.resolver.resolve(dump.data['recid'])[1]
+        # clean deposit
+        cls.clean_deposit(record=record, delete_files=delete_files)
+        # clean record
+        cls.clean_record(dump=dump, record=record, delete_files=delete_files)
+
+    @classmethod
+    def _get_deposit(cls, record):
+        """Get deposit."""
+        app.logger.debug('Get deposit for record {0}'.format(record.id))
+        records = RecordMetadata.query.all()
+        #  records = RecordMetadata.query.filter([
+        #      sqlalchemy.cast(
+        #          RecordMetadata.json['recid'],
+        #          sqlalchemy.Integer) == sqlalchemy.type_coerce(
+        #              int(record['recid']), sqlalchemy.JSON)
+        #  ]).all()
+        for record_db in records:
+            try:
+                if record['recid'] == record_db.json['recid']:
+                    pid = PersistentIdentifier.query.filter_by(
+                        pid_type='depid', object_uuid=str(record_db.id)).one()
+                    return Record.get_record(pid.object_uuid)
+            except NoResultFound:
+                pass
+        app.logger.debug('Clean deposit, deposit for the record '
+                         '{0} not found'.format(record.id))
+        return None
+
+    @classmethod
+    def clean_deposit(cls, record, delete_files):
+        """Clean deposit."""
+        app.logger.debug('Clean deposit for record {0}'.format(record.id))
+        deposit = cls._get_deposit(record=record)
+        if deposit:
+            cls.clean_buckets(record=deposit, delete_files=delete_files)
+            cls.clean_pids(deposit)
+            db.session.delete(deposit.model)
+
+    @classmethod
+    def clean_record(cls, dump, record, delete_files):
+        """Clean record."""
+        cls.clean_buckets(record, delete_files=delete_files)
+        cls.clean_pids(record)
+        RecordIdentifier.query.filter_by(recid=dump.recid).delete()
+        db.session.delete(record.model)
+
+    @classmethod
+    def clean_files(cls, bucket, delete_files):
+        """Clean files."""
+        for obj in ObjectVersion.query.filter_by(bucket=bucket).all():
+            objs_to_file = ObjectVersion.query.filter_by(
+                file_id=obj.file_id).count()
+            obj.file.writable = True
+            db.session.delete(obj)
+            if objs_to_file == 1:
+                if delete_files:
+                    remove_file_data.s(file_id=obj.file_id).apply()
+                else:
+                    obj.file.delete()
+
+    @classmethod
+    def clean_buckets(cls, record, delete_files):
+        """Clean buckets."""
+        app.logger.debug('Clean bucket for record {0}'.format(record.id))
+        for rb in RecordsBuckets.query.filter_by(record_id=record.id).all():
+            bucket = rb.bucket
+            app.logger.debug('Clean files for bucket {0}'.format(bucket.id))
+            cls.clean_files(bucket=bucket, delete_files=delete_files)
+            app.logger.debug('Clean tags for bucket {0}'.format(bucket.id))
+            for tag in BucketTag.query.filter_by(bucket=bucket).all():
+                db.session.delete(tag)
+            db.session.delete(rb)
+            db.session.delete(bucket)
+
+    @classmethod
+    def _get_pids(cls, record):
+        """Get all pids."""
+        return PersistentIdentifier.query.filter_by(
+            object_type='rec', object_uuid=record.id).all()
+
+    @classmethod
+    def clean_pids(cls, record):
+        """Clean all pids."""
+        app.logger.debug('Clean pids and record identifier for '
+                         'record {0}'.format(record.id))
+        for pid in cls._get_pids(record):
+            db.session.delete(pid)
 
     @classmethod
     def create(cls, dump):

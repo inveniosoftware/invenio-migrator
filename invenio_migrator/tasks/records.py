@@ -33,13 +33,16 @@ from ..proxies import current_migrator
 
 
 @shared_task()
-def import_record(data, source_type=None, latest_only=False):
+def import_record(data, source_type=None, latest_only=False,
+                  delete_files=False):
     """Migrate a record from a migration dump.
 
     :param data: Dictionary for representing a single record and files.
     :param source_type: Determines if the MARCXML or the JSON dump is used.
         Default: ``marcxml``.
     :param latest_only: Determine is only the latest revision should be loaded.
+    :param delete_files: If ``True``, it will try to fisically delete the
+        files if migration fails.
     """
     source_type = source_type or 'marcxml'
     assert source_type in ['marcxml', 'json']
@@ -54,4 +57,7 @@ def import_record(data, source_type=None, latest_only=False):
         db.session.commit()
     except Exception:
         db.session.rollback()
+        current_migrator.records_dumploader_cls.clean(
+            recorddump, delete_files=delete_files)
+        db.session.commit()
         raise
