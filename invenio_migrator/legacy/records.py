@@ -154,6 +154,23 @@ def get(query, from_date, **kwargs):
     return len(recids), recids
 
 
+def get_creation_date_in_bibrec(recid, fmt="%Y-%m-%d %H:%i:%s"):
+    """Get correct creation date for a record."""
+    try:
+        from invenio.dbquery import run_sql
+    except ImportError:
+        from invenio.legacy.dbquery import run_sql
+
+    res = run_sql(
+        "SELECT DATE_FORMAT(creation_date,%s) FROM bibrec WHERE id=%s", (fmt, recid), 1
+    )
+    if res:
+        return res[0][0]
+    raise ValueError(
+        "No creation date found in bibrec for recid {0}".format(recid)
+    )
+
+
 def dump(recid,
          from_date,
          with_json=False,
@@ -195,5 +212,7 @@ def dump(recid,
                 json=dump_record_json(marcxml) if with_json else None, ))
 
     record_dump['files'] = dump_bibdoc(recid, from_date)
+
+    record_dump['creation_date'] = get_creation_date_in_bibrec(recid)
 
     return record_dump
