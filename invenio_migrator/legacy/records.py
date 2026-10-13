@@ -9,6 +9,7 @@ import datetime
 import zlib
 
 from .bibdocfile import dump_bibdoc, get_modified_bibdoc_recids
+from .restrictions import dump_restrictions
 from .utils import datetime_toutc, memoize
 
 
@@ -156,6 +157,7 @@ def dump(recid,
          with_json=False,
          latest_only=False,
          with_collections=False,
+         with_restrictions=True,
          **kwargs):
     """Dump MARCXML and JSON representation of a record.
 
@@ -166,6 +168,9 @@ def dump(recid,
     :param latest_only: Dump only the last revision of the record metadata.
     :param with_collections: If ``True`` dump the list of collections that the
         record belongs to.
+    :param with_restrictions: If ``True`` dump the access restrictions of the
+        record (restricted collections with their roles/e-groups, restricted
+        files and record-level owner/viewer tags) under ``restrictions``.
     :returns: List of versions of the record.
     """
     # Grab latest only
@@ -194,5 +199,8 @@ def dump(recid,
     record_dump['files'] = dump_bibdoc(recid, from_date)
 
     record_dump['creation_date'] = get_creation_date_in_bibrec(recid)
+
+    if with_restrictions:
+        record_dump['restrictions'] = dump_restrictions(recid)
 
     return record_dump

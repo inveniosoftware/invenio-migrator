@@ -56,6 +56,19 @@ def test_dump_record():
     assert len(record_dump['record'][0]['json']['authors']) == 315
 
 
+def test_dump_record_restrictions():
+    """Test dump of access restrictions."""
+    record_dump = dump_record(
+        10, '1970-01-01 00:00:00', with_restrictions=True)
+    restrictions = record_dump['restrictions']
+    assert set(restrictions) == set(
+        ['collections', 'files', 'record', 'edit', 'comments'])
+    assert set(restrictions['record']) == set(['owners', 'viewers'])
+
+    # Opt-in: nothing changes without the flag.
+    assert 'restrictions' not in dump_record(10, '1970-01-01 00:00:00')
+
+
 def test_get_record():
     """Test get record."""
     records = get_record('Ellis', '1970-01-01 00:00:00')
