@@ -157,7 +157,7 @@ def dump(recid,
          with_json=False,
          latest_only=False,
          with_collections=False,
-         with_restrictions=True,
+         with_restrictions=False,
          **kwargs):
     """Dump MARCXML and JSON representation of a record.
 
