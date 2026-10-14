@@ -29,6 +29,8 @@ string is parsed or interpreted.
 
 from __future__ import absolute_import, print_function
 
+from contextlib import contextmanager
+
 from .utils import memoize
 
 
@@ -63,6 +65,7 @@ def _get_grant_tags():
     return list(owner_tags), list(viewer_tags)
 
 
+@memoize
 def _dump_role(row):
     """Dump a role together with its explicit users."""
     run_sql = _get_run_sql()
@@ -128,24 +131,25 @@ def dump_collection_restrictions(collections):
 
 
 def dump_bibdoc_restrictions(recid):
-    """Dump the restriction of every restricted BibDoc of a record."""
-    try:
-        from invenio.bibdocfile import BibRecDocs
-    except ImportError:
-        from invenio.legacy.bibdocfile.api import BibRecDocs
+    """Dump the restriction of every restricted BibDoc of a record.
 
-    restrictions = []
-    for bibdoc in BibRecDocs(recid).list_bibdocs():
-        status = bibdoc.get_status()
-        if not status:
-            continue
-        restrictions.append(dict(
-            bibdocid=bibdoc.get_id(),
-            status=status,
-            # Roles granted ``viewrestrdoc`` for this exact status value.
-            roles=get_action_roles('viewrestrdoc', 'status', status),
-        ))
-    return restrictions
+    The status is read straight from the ``bibdoc`` table (same selection as
+    ``BibRecDocs(recid).list_bibdocs()``: not deleted), to avoid
+    instantiating every BibDoc, which is expensive.
+    """
+    run_sql = _get_run_sql()
+    return [
+        dict(bibdocid=bibdocid,
+             status=status,
+             # Roles granted ``viewrestrdoc`` for this exact status value.
+             roles=get_action_roles('viewrestrdoc', 'status', status))
+        for bibdocid, status in run_sql(
+            'SELECT bd.id, bd.status FROM bibrec_bibdoc AS brbd '
+            'JOIN bibdoc AS bd ON bd.id=brbd.id_bibdoc '
+            "WHERE brbd.id_bibrec=%s AND bd.status<>'' "
+            "AND bd.status<>'DELETED' ORDER BY bd.id",
+            (recid, ), run_on_slave=True)
+    ]
 
 
 def dump_record_grants(recid):
@@ -158,15 +162,52 @@ def dump_record_grants(recid):
     )
 
 
-def get_collections(recid):
-    """Get names of all the collections a record belongs to."""
+@memoize
+def get_edit_collections():
+    """Get names of the collections with ``runbibedit`` roles configured."""
+    run_sql = _get_run_sql()
+    return [row[0] for row in run_sql(
+        'SELECT DISTINCT a.value FROM accARGUMENT AS a '
+        'JOIN accROLE_accACTION_accARGUMENT AS raa '
+        'ON a.id=raa.id_accARGUMENT '
+        'WHERE a.keyword="collection" AND raa.id_accACTION='
+        '(SELECT id FROM accACTION WHERE name="runbibedit") '
+        'ORDER BY a.value', run_on_slave=True)]
+
+
+def get_collections_in(recid, collections):
+    """Get which of the given collections the record belongs to."""
     try:
-        from invenio.search_engine import get_all_collections_of_a_record
+        from invenio.search_engine import get_collection_reclist
     except ImportError:
-        from invenio.legacy.search_engine import (
-            get_all_collections_of_a_record)
-    return get_all_collections_of_a_record(
-        recid, recreate_cache_if_needed=False)
+        from invenio.legacy.search_engine import get_collection_reclist
+    return [coll for coll in collections if recid in get_collection_reclist(
+        coll, recreate_cache_if_needed=False)]
+
+
+@contextmanager
+def frozen_collection_cache():
+    """Stop legacy from re-validating the collection cache on every call.
+
+    ``get_collection_reclist`` and ``get_all_collections_of_a_record`` (used
+    by ``guess_primary_collection_of_a_record`` and ``get_record_status``)
+    call ``collection_reclist_cache.recreate_cache_if_needed()`` by default,
+    which queries ``information_schema.tables`` each time, i.e. several heavy
+    queries per record. The cache is filled once when the legacy module is
+    imported, which is good enough for a dump.
+    """
+    try:
+        from invenio.search_engine import collection_reclist_cache
+    except ImportError:
+        from invenio.legacy.search_engine import collection_reclist_cache
+
+    # Instance attribute shadows the method; removing it restores the class
+    # method.
+    collection_reclist_cache.recreate_cache_if_needed = lambda: None
+    try:
+        yield
+    finally:
+        del collection_reclist_cache.recreate_cache_if_needed
 
 
 def get_primary_collection(recid):
@@ -183,12 +224,13 @@ def dump_edit_restrictions(recid):
     """Dump roles allowed to edit the record (``runbibedit`` action).
 
     The action is granted per collection the record belongs to, or for any
-    collection (``any_collection``).
+    collection (``any_collection``). Only collections that have ``runbibedit``
+    roles configured are listed.
     """
     return dict(
         collections=dict(
             (coll, get_action_roles('runbibedit', 'collection', coll))
-            for coll in get_collections(recid)),
+            for coll in get_collections_in(recid, get_edit_collections())),
         any_collection=get_action_wildcard_roles('runbibedit'),
     )
 
@@ -207,7 +249,9 @@ def dump_comment_restrictions(recid):
     from invenio.webcomment import get_record_status
 
     run_sql = _get_run_sql()
-    primary_collection = get_primary_collection(recid)
+    with frozen_collection_cache():
+        primary_collection = get_primary_collection(recid)
+        record_restriction = get_record_status(recid)[0]
 
     comments = {}
     for comment_id, restriction in run_sql(
@@ -226,7 +270,7 @@ def dump_comment_restrictions(recid):
             roles=get_action_roles(
                 'sendcomment', 'collection', primary_collection),
             any_collection=get_action_wildcard_roles('sendcomment')),
-        record_restriction=get_record_status(recid)[0],
+        record_restriction=record_restriction,
         restricted_comments=[
             dict(restriction=restriction,
                  comment_ids=comment_ids,
