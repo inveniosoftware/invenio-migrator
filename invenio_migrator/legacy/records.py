@@ -189,6 +189,10 @@ def dump(recid,
 
     for revision_date, revision_marcxml in revision_iter:
         marcxml = zlib.decompress(revision_marcxml)
+        try:
+            marcxml = marcxml.decode('utf-8')
+        except UnicodeDecodeError:
+            marcxml = marcxml.decode('latin-1')
         record_dump['record'].append(
             dict(
                 modification_datetime=datetime_toutc(revision_date)
