@@ -53,13 +53,15 @@ def _get_fieldvalues():
 def _get_grant_tags():
     """Get MARC tags granting owner and viewer rights to a record."""
     try:
-        from invenio.access_control_config import (
-            CFG_ACC_GRANT_AUTHOR_RIGHTS_TO_EMAILS_IN_TAGS as owner_tags,
-            CFG_ACC_GRANT_VIEWER_RIGHTS_TO_EMAILS_IN_TAGS as viewer_tags)
+        from invenio.access_control_config import \
+            CFG_ACC_GRANT_AUTHOR_RIGHTS_TO_EMAILS_IN_TAGS as owner_tags
+        from invenio.access_control_config import \
+            CFG_ACC_GRANT_VIEWER_RIGHTS_TO_EMAILS_IN_TAGS as viewer_tags
     except ImportError:
-        from invenio.modules.access.local_config import (
-            CFG_ACC_GRANT_AUTHOR_RIGHTS_TO_EMAILS_IN_TAGS as owner_tags,
-            CFG_ACC_GRANT_VIEWER_RIGHTS_TO_EMAILS_IN_TAGS as viewer_tags)
+        from invenio.modules.access.local_config import \
+            CFG_ACC_GRANT_AUTHOR_RIGHTS_TO_EMAILS_IN_TAGS as owner_tags
+        from invenio.modules.access.local_config import \
+            CFG_ACC_GRANT_VIEWER_RIGHTS_TO_EMAILS_IN_TAGS as viewer_tags
     return list(owner_tags), list(viewer_tags)
 
 
@@ -68,12 +70,13 @@ def _dump_role(row):
     run_sql = _get_run_sql()
     role_id, name, description, firerole_def_src = row
     users = [
-        dict(email=email,
-             expiration=expiration.isoformat() if expiration else None)
+        dict(email=email, expiration=expiration.isoformat() if expiration else None)
         for email, expiration in run_sql(
-            'SELECT u.email, ur.expiration FROM user_accROLE AS ur '
-            'JOIN user AS u ON u.id=ur.id_user WHERE ur.id_accROLE=%s',
-            (role_id, ), run_on_slave=True)
+            "SELECT u.email, ur.expiration FROM user_accROLE AS ur "
+            "JOIN user AS u ON u.id=ur.id_user WHERE ur.id_accROLE=%s",
+            (role_id,),
+            run_on_slave=True,
+        )
     ]
     return dict(
         id=role_id,
@@ -92,13 +95,15 @@ def get_action_roles(action, keyword, value):
     """
     run_sql = _get_run_sql()
     rows = run_sql(
-        'SELECT DISTINCT r.id, r.name, r.description, r.firerole_def_src '
-        'FROM accROLE AS r '
-        'JOIN accROLE_accACTION_accARGUMENT AS raa ON r.id=raa.id_accROLE '
-        'JOIN accARGUMENT AS a ON a.id=raa.id_accARGUMENT '
-        'WHERE raa.id_accACTION=(SELECT id FROM accACTION WHERE name=%s) '
-        'AND a.keyword=%s AND a.value=%s ORDER BY r.id',
-        (action, keyword, value), run_on_slave=True)
+        "SELECT DISTINCT r.id, r.name, r.description, r.firerole_def_src "
+        "FROM accROLE AS r "
+        "JOIN accROLE_accACTION_accARGUMENT AS raa ON r.id=raa.id_accROLE "
+        "JOIN accARGUMENT AS a ON a.id=raa.id_accARGUMENT "
+        "WHERE raa.id_accACTION=(SELECT id FROM accACTION WHERE name=%s) "
+        "AND a.keyword=%s AND a.value=%s ORDER BY r.id",
+        (action, keyword, value),
+        run_on_slave=True,
+    )
     return [_dump_role(row) for row in rows]
 
 
@@ -110,21 +115,24 @@ def get_action_wildcard_roles(action):
     """
     run_sql = _get_run_sql()
     rows = run_sql(
-        'SELECT DISTINCT r.id, r.name, r.description, r.firerole_def_src '
-        'FROM accROLE AS r '
-        'JOIN accROLE_accACTION_accARGUMENT AS raa ON r.id=raa.id_accROLE '
-        'WHERE raa.id_accACTION=(SELECT id FROM accACTION WHERE name=%s) '
-        'AND raa.id_accARGUMENT=-1 AND raa.argumentlistid=-1 '
-        'ORDER BY r.id',
-        (action, ), run_on_slave=True)
+        "SELECT DISTINCT r.id, r.name, r.description, r.firerole_def_src "
+        "FROM accROLE AS r "
+        "JOIN accROLE_accACTION_accARGUMENT AS raa ON r.id=raa.id_accROLE "
+        "WHERE raa.id_accACTION=(SELECT id FROM accACTION WHERE name=%s) "
+        "AND raa.id_accARGUMENT=-1 AND raa.argumentlistid=-1 "
+        "ORDER BY r.id",
+        (action,),
+        run_on_slave=True,
+    )
     return [_dump_role(row) for row in rows]
 
 
 def dump_collection_restrictions(collections):
     """Dump roles allowed to view each restricted collection."""
     return dict(
-        (coll, get_action_roles('viewrestrcoll', 'collection', coll))
-        for coll in collections)
+        (coll, get_action_roles("viewrestrcoll", "collection", coll))
+        for coll in collections
+    )
 
 
 def dump_bibdoc_restrictions(recid):
@@ -139,12 +147,14 @@ def dump_bibdoc_restrictions(recid):
         status = bibdoc.get_status()
         if not status:
             continue
-        restrictions.append(dict(
-            bibdocid=bibdoc.get_id(),
-            status=status,
-            # Roles granted ``viewrestrdoc`` for this exact status value.
-            roles=get_action_roles('viewrestrdoc', 'status', status),
-        ))
+        restrictions.append(
+            dict(
+                bibdocid=bibdoc.get_id(),
+                status=status,
+                # Roles granted ``viewrestrdoc`` for this exact status value.
+                roles=get_action_roles("viewrestrdoc", "status", status),
+            )
+        )
     return restrictions
 
 
@@ -163,10 +173,9 @@ def get_collections(recid):
     try:
         from invenio.search_engine import get_all_collections_of_a_record
     except ImportError:
-        from invenio.legacy.search_engine import (
-            get_all_collections_of_a_record)
-    return get_all_collections_of_a_record(
-        recid, recreate_cache_if_needed=False)
+        from invenio.legacy.search_engine import \
+            get_all_collections_of_a_record
+    return get_all_collections_of_a_record(recid, recreate_cache_if_needed=False)
 
 
 def get_primary_collection(recid):
@@ -174,8 +183,8 @@ def get_primary_collection(recid):
     try:
         from invenio.search_engine import guess_primary_collection_of_a_record
     except ImportError:
-        from invenio.legacy.search_engine import (
-            guess_primary_collection_of_a_record)
+        from invenio.legacy.search_engine import \
+            guess_primary_collection_of_a_record
     return guess_primary_collection_of_a_record(recid)
 
 
@@ -186,53 +195,8 @@ def dump_edit_restrictions(recid):
     collection (``any_collection``).
     """
     return dict(
-        collections=dict(
-            (coll, get_action_roles('runbibedit', 'collection', coll))
-            for coll in get_collections(recid)),
-        any_collection=get_action_wildcard_roles('runbibedit'),
-    )
-
-
-def dump_comment_restrictions(recid):
-    """Dump comment related restrictions of a record.
-
-    * ``view``/``send``: ``viewcomment``/``sendcomment`` roles, granted per
-      primary collection of the record. If the action has no roles at all
-      legacy Invenio lets everybody through.
-    * ``record_restriction``: the restriction applied to newly submitted
-      comments, as set in the record metadata.
-    * ``restricted_comments``: restrictions set on existing comments and
-      reviews, with the ``viewrestrcomment`` roles that can see them.
-    """
-    from invenio.webcomment import get_record_status
-
-    run_sql = _get_run_sql()
-    primary_collection = get_primary_collection(recid)
-
-    comments = {}
-    for comment_id, restriction in run_sql(
-            'SELECT id, restriction FROM cmtRECORDCOMMENT '
-            'WHERE id_bibrec=%s AND restriction != "" ORDER BY id',
-            (recid, ), run_on_slave=True):
-        comments.setdefault(restriction, []).append(comment_id)
-
-    return dict(
-        primary_collection=primary_collection,
-        view=dict(
-            roles=get_action_roles(
-                'viewcomment', 'collection', primary_collection),
-            any_collection=get_action_wildcard_roles('viewcomment')),
-        send=dict(
-            roles=get_action_roles(
-                'sendcomment', 'collection', primary_collection),
-            any_collection=get_action_wildcard_roles('sendcomment')),
-        record_restriction=get_record_status(recid)[0],
-        restricted_comments=[
-            dict(restriction=restriction,
-                 comment_ids=comment_ids,
-                 roles=get_action_roles(
-                     'viewrestrcomment', 'status', restriction))
-            for restriction, comment_ids in sorted(comments.items())],
+        (coll, get_action_roles("runbibedit", "collection", coll))
+        for coll in get_collections(recid)
     )
 
 
@@ -241,10 +205,9 @@ def get_restricted_collections(recid):
     try:
         from invenio.search_engine import get_restricted_collections_for_recid
     except ImportError:
-        from invenio.legacy.search_engine import (
-            get_restricted_collections_for_recid)
-    return get_restricted_collections_for_recid(
-        recid, recreate_cache_if_needed=False)
+        from invenio.legacy.search_engine import \
+            get_restricted_collections_for_recid
+    return get_restricted_collections_for_recid(recid, recreate_cache_if_needed=False)
 
 
 def dump_restrictions(recid):
@@ -276,18 +239,7 @@ def dump_restrictions(recid):
             "viewers": {"506__m": ["atlas-reviewers"], "5061_d": []}
           },
           "edit": {                   # runbibedit
-            "collections": {"ATLAS Internal Notes": [...]},
-            "any_collection": [...]   # roles granted with any argument
-          },
-          "comments": {
-            "primary_collection": "ATLAS Internal Notes",
-            "view": {"roles": [...], "any_collection": [...]},  # viewcomment
-            "send": {"roles": [...], "any_collection": [...]},  # sendcomment
-            "record_restriction": "referees",  # applied to new comments
-            "restricted_comments": [           # viewrestrcomment
-              {"restriction": "referees", "comment_ids": [101, 102],
-               "roles": [...]}
-            ]
+            "ATLAS Internal Notes": [...]
           }
         }
 
@@ -296,10 +248,8 @@ def dump_restrictions(recid):
     to the consumer of the dump.
     """
     return dict(
-        collections=dump_collection_restrictions(
-            get_restricted_collections(recid)),
+        collections=dump_collection_restrictions(get_restricted_collections(recid)),
         files=dump_bibdoc_restrictions(recid),
         record=dump_record_grants(recid),
         edit=dump_edit_restrictions(recid),
-        comments=dump_comment_restrictions(recid),
     )
